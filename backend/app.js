@@ -5,9 +5,26 @@ const cors = require("cors");
 const app = express();
 
 // Middleware
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-mongoose.connect("mongodb+srv://<db_username>:ywGSaGThVLxZvnQr@cluster0.sfvhdit.mongodb.net/")
+// Test route
+app.get("/", (req, res) => {
+  res.send("It is working");
+});
 
-//OwdDd9kgZqpGWWA8
+// Corrected MongoDB connection
+mongoose.connect("mongodb+srv://admin:uktNIVQQ0X5MfySV@cluster0.8kk63n7.mongodb.net/")
+  .then(() => {
+    console.log("Connected to MongoDB");
+    app.listen(5000, (err) => {
+      if (err) {
+        console.error("Server startup error:", err);
+      } else {
+        console.log("Server running on port 5000");
+      }
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
