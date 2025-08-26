@@ -15,10 +15,7 @@ const userSchema = new Schema({
         type: Number,
         required: true
     },
-    address: {
-        type: String,
-        required: true
-    },
+   
     // New transaction fields
     transactionId: {
         type: String,
@@ -35,4 +32,4 @@ const userSchema = new Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("finaModel", userSchema);

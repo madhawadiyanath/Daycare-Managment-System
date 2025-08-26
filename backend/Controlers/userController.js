@@ -1,4 +1,4 @@
-const User = require("../models/userModel");
+const User = require("../Model/finaModel");
 
 // Get all users
 const getAllUsers = async (req, res) => {
@@ -9,7 +9,7 @@ const getAllUsers = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
+//Update 
 module.exports = {
     getAllUsers
 
