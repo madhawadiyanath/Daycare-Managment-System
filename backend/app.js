@@ -1,22 +1,26 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const router=require("./Routes/userRoutes");
+const userRoutes = require("./routes/userRoutes");
+
 const app = express();
 
-
-app.use("/users",router);
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use("/users", userRoutes);
+
 app.get("/", (req, res) => {
-  res.send("It is working");
+  res.send("Daycare Finance Management System is working");
 });
 
-// Test connection without starting server first
+// MongoDB connection
 mongoose.connect("mongodb+srv://admin:5YdcKV1qUqM18Gkv@cluster0.8kk63n7.mongodb.net/daycare_db?retryWrites=true&w=majority")
   .then(() => {
     console.log("Connected to MongoDB");
+    
     app.listen(5000, () => {
       console.log("Server running on port 5000");
     });

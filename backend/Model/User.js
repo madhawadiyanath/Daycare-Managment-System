@@ -11,12 +11,19 @@ const userSchema = new Schema({
         required: true,
         unique: true
     },
+    password: {
+        type: String,
+        required: true
+    },
     age: {
         type: Number,
         required: true
     },
-   
-    // New transaction fields
+    address: {
+        type: String,
+        required: true
+    },
+    // New finance management fields
     transactionId: {
         type: String,
         unique: true
@@ -29,7 +36,11 @@ const userSchema = new Schema({
     },
     package: {
         type: String
+    },
+    balance: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model("finaModel", userSchema);
+module.exports = mongoose.model("User", userSchema);
