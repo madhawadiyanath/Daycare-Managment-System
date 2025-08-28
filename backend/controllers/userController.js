@@ -12,10 +12,12 @@ const getAllUsers = async (req, res) => {
 
 // Register new user
 const register = async (req, res) => {
-    const { name, email, password, age, address } = req.body;
+    const { name, email, password, age, address, childId, guardianName, package } = req.body;
     
     try {
-        const newUser = new User({ name, email, password, age, address });
+        const newUser = new User({ 
+            name, email, password, age, address, childId, guardianName, package 
+        });
         await newUser.save();
         res.status(201).json({ user: newUser });
     } catch (err) {
@@ -49,12 +51,12 @@ const getById = async (req, res) => {
 // Update User details
 const updateUser = async (req, res) => {
     const id = req.params.id;
-    const { name, email, age, address, guardianName, package } = req.body;
+    const { name, email, age, address, childId, guardianName, package } = req.body;
 
     try {
         const user = await User.findByIdAndUpdate(
             id,
-            { name, email, age, address, guardianName, package },
+            { name, email, age, address, childId, guardianName, package },
             { new: true, runValidators: true }
         );
         
