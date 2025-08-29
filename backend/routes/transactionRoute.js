@@ -9,5 +9,6 @@ router.get("/user/:userId", transactionController.getUserTransactions);
 router.get("/:id", transactionController.getTransactionById);
 router.put("/:id", transactionController.updateTransaction);
 router.delete("/:id", transactionController.deleteTransaction);
+router.get("/user/:userId/summary", transactionController.getTransactionSummary);
 
 module.exports = router;

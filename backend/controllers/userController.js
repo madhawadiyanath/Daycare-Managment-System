@@ -1,24 +1,23 @@
-const User = require("../models/User");
+const User = require("../models/UserModel");
 
 // Get all users
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find();
-        res.status(200).json({ users });
+        const users = await User.find().select("-password");
+        res.status(200).json({ success: true, users });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
-// Register new user
+// Register new user (simplified version)
 const register = async (req, res) => {
-    const { name, email, password, age, address, childId, guardianName, package } = req.body;
+    const { name, email, password } = req.body;
     
     try {
-        const newUser = new User({ 
-            name, email, password, age, address, childId, guardianName, package 
-        });
+        const newUser = new User({ name, email, password });
         await newUser.save();
+        
         res.status(201).json({ user: newUser });
     } catch (err) {
         if (err.code === 11000) {
@@ -30,7 +29,7 @@ const register = async (req, res) => {
 };
 
 // Get user by ID
-const getById = async (req, res) => {
+const getUserById = async (req, res) => {
     const id = req.params.id;
     
     try {
@@ -51,22 +50,25 @@ const getById = async (req, res) => {
 // Update User details
 const updateUser = async (req, res) => {
     const id = req.params.id;
-    const { name, email, age, address, childId, guardianName, package } = req.body;
+    const { name, email } = req.body;
 
     try {
         const user = await User.findByIdAndUpdate(
             id,
-            { name, email, age, address, childId, guardianName, package },
+            { name, email },
             { new: true, runValidators: true }
-        );
+        ).select("-password");
         
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
         }
         
-        res.status(200).json({ user });
+        res.status(200).json({ success: true, user });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -78,56 +80,25 @@ const deleteUser = async (req, res) => {
         const user = await User.findByIdAndDelete(id);
         
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
         }
         
-        res.status(200).json({ message: "User deleted successfully" });
+        res.status(200).json({ 
+            success: true, 
+            message: "User deleted successfully" 
+        });
     } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
-
-// Get user balance
-const getBalance = async (req, res) => {
-    const id = req.params.id;
-    
-    try {
-        const user = await User.findById(id);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        res.status(200).json({ balance: user.balance });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
-
-// Update user balance
-const updateBalance = async (req, res) => {
-    const id = req.params.id;
-    const { amount } = req.body;
-    
-    try {
-        const user = await User.findById(id);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        
-        user.balance += amount;
-        await user.save();
-        
-        res.status(200).json({ balance: user.balance });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
 module.exports = {
     getAllUsers,
     register,
-    getById,
+    getUserById,
     updateUser,
-    deleteUser,
-    getBalance,
-    updateBalance
+    deleteUser
 };
