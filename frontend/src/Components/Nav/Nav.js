@@ -1,9 +1,12 @@
 import React from 'react'
-
+import './Nav.css';
 function Nav() {
   return (
     <div>
-      <h1>Home New</h1>
+       
+      
+            
+
     </div>
   )
 }
