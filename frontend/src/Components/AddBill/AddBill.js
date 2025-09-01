@@ -1,10 +1,10 @@
 import React from 'react'
 import Nav from "../Nav/Nav";
-function AddUser() {
+function AddBill() {
   return (
     
-    <div>
-      <Nav/><br></br><br></br><br></br>
+    <div>   
+      <Nav/>
       <main class="main-content">
       <div>
       <h1>Hii</h1>
@@ -15,4 +15,4 @@ function AddUser() {
   )
 }
 
-export default AddUser
+export default AddBill
