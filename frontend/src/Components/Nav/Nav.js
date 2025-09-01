@@ -49,7 +49,7 @@ function Nav() {
                     <a href="#" class="nav-link login-btn">Login</a>
                 </li>
                 <li class="nav-item">
-                    <Link to="/mainfina" class="nav-link join-btn" >Join Us</Link>
+                    <Link to="/JoinUs" class="nav-link join-btn" >Join Us</Link>
                 </li>
             </ul>
         </nav>

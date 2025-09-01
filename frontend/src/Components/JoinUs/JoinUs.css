@@ -1,0 +1,155 @@
+.joinus-container {
+    min-height: 100vh;
+    background: linear-gradient( #349ff7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .joinus-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+  }
+  
+  .joinus-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .joinus-header h2 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 28px;
+    font-weight: 600;
+  }
+  
+  .joinus-header p {
+    color: #666;
+    font-size: 16px;
+  }
+  
+  .joinus-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .form-group input {
+    padding: 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+  
+  .form-group input.error {
+    border-color: #e74c3c;
+  }
+  
+  .form-group input:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+  }
+  
+  .error-text {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+  }
+  
+  .submit-error {
+    background-color: #ffebee;
+    color: #e74c3c;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .joinus-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    margin-top: 10px;
+  }
+  
+  .joinus-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+  
+  .joinus-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .joinus-footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #e1e5e9;
+  }
+  
+  .joinus-footer p {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .login-link {
+    color: #667eea;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  
+  .login-link:hover {
+    color: #5a67d8;
+  }
+  
+  @media (max-width: 480px) {
+    .joinus-card {
+      padding: 30px 20px;
+      margin: 10px;
+    }
+    
+    .joinus-header h2 {
+      font-size: 24px;
+    }
+    
+    .form-group input {
+      padding: 10px 12px;
+    }
+    
+    .joinus-btn {
+      padding: 12px;
+    }
+  }
