@@ -122,7 +122,7 @@ function BillDetails() {
   return (
     <div>
       <Nav />
-      <main className="main-content">
+      <main >
         <div className="bill-details-container">
           <div className="header-section">
             <h1>Bill & Transaction Details</h1>
