@@ -7,6 +7,7 @@ import AddUser from "./Components/AddBill/AddBill";
 import Finace from "./Components/Finance/Finance";
 import BillDetails from "./Components/BillDetails/BillDetails";
 import JoinUs from './Components/JoinUs/JoinUs';
+import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
 function App() {
   return (
     <div className="App">
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<Home/>}/>
           <Route path="/goHome" element={<Home/>}/>
           <Route path="/mainfina" element={<Finace/>}/>
+          <Route path="/ChildcareDashboard" element={<ChildcareDashboard/>}/>
           <Route path="/AddBill" element={<AddUser/>}/>
           <Route path="/BillDetails" element={<BillDetails/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
