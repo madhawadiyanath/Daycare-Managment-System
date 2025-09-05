@@ -4,7 +4,6 @@ const User = require("../models/UserModel");
 const getAllTransactions = async (req, res) => {
     try {
         const transactions = await Transaction.find()
-            .populate("userId", "name email")
             .sort({ date: -1 });
         res.status(200).json({ success: true, transactions });
     } catch (err) {
@@ -17,21 +16,8 @@ const createTransaction = async (req, res) => {
     const { userId, type, amount, category, description, recipient } = req.body;
     
     try {
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "User not found" 
-            });
-        }
-        
-        // Update user balance based on transaction type
-        if (type === "income") {
-            user.balance += amount;
-        } else if (type === "expense") {
-            user.balance -= amount;
-        }
-        // For transfers, you might want different logic
+        // Skip user validation since userId is now a simple string
+        // You can optionally validate if the user exists in your system
         
         const newTransaction = new Transaction({
             userId,
@@ -43,7 +29,6 @@ const createTransaction = async (req, res) => {
         });
         
         await newTransaction.save();
-        await user.save();
         
         res.status(201).json({ 
             success: true, 
@@ -72,8 +57,7 @@ const getTransactionById = async (req, res) => {
     const id = req.params.id;
     
     try {
-        const transaction = await Transaction.findById(id)
-            .populate("userId", "name email");
+        const transaction = await Transaction.findById(id);
         if (!transaction) {
             return res.status(404).json({ 
                 success: false, 

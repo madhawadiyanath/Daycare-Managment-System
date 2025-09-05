@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoute");
 const transactionRoutes = require("./routes/transactionRoute");
+const salaryRoutes = require("./routes/salaryRoute");
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 // Routes
 app.use("/users", userRoutes);
 app.use("/transactions", transactionRoutes);
+app.use("/salaries", salaryRoutes);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");

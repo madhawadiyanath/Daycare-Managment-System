@@ -86,7 +86,15 @@ function BillDetails() {
 
   const getUserInfo = (userId) => {
     const user = users[userId];
-    if (!user) return 'Loading...';
+    if (!user) {
+      // Since userId is now a simple string, just display the userId directly
+      return (
+        <div className="user-info">
+          <div className="user-name">User: {userId}</div>
+          <div className="user-id">ID: {userId}</div>
+        </div>
+      );
+    }
     
     return (
       <div className="user-info">

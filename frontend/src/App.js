@@ -6,6 +6,7 @@ import Home from "./Components/Home/Home";
 import AddUser from "./Components/AddBill/AddBill";
 import Finace from "./Components/Finance/Finance";
 import BillDetails from "./Components/BillDetails/BillDetails";
+import SalaryDetails from "./Components/SalaryDetails/SalaryDetails";
 import JoinUs from './Components/JoinUs/JoinUs';
 import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/ChildcareDashboard" element={<ChildcareDashboard/>}/>
           <Route path="/AddBill" element={<AddUser/>}/>
           <Route path="/BillDetails" element={<BillDetails/>}/>
+          <Route path="/SalaryDetails" element={<SalaryDetails/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
         </Routes>
       </React.Fragment>
