@@ -7,6 +7,7 @@ import AddUser from "./Components/AddBill/AddBill";
 import Finace from "./Components/Finance/Finance";
 import BillDetails from "./Components/BillDetails/BillDetails";
 import JoinUs from './Components/JoinUs/JoinUs';
+import Login from './Components/Login/Login';
 import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/AddBill" element={<AddUser/>}/>
           <Route path="/BillDetails" element={<BillDetails/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
+          <Route path="/login" element={<Login/>}/>
         </Routes>
       </React.Fragment>
     </div>

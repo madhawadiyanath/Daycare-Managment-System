@@ -46,7 +46,7 @@ function Nav() {
                     <a href="#" class="nav-link">About</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link login-btn">Login</a>
+                    <Link to="/login" class="nav-link login-btn">Login</Link>
                 </li>
                 <li class="nav-item">
                     <Link to="/JoinUs" class="nav-link join-btn" >Join Us</Link>

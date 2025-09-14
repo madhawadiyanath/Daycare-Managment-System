@@ -5,6 +5,7 @@ import './JoinUs.css';
 
 function JoinUs() {
   const [formData, setFormData] = useState({
+    username: '',
     name: '',
     email: '',
     password: '',
@@ -32,6 +33,16 @@ function JoinUs() {
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.trim().length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.trim().length > 20) {
+      newErrors.username = 'Username must be less than 20 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username.trim())) {
+      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+    }
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
@@ -70,20 +81,20 @@ function JoinUs() {
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:5000/users', {
+        username: formData.username.trim().toLowerCase(),
         name: formData.name.trim(),
         email: formData.email.toLowerCase().trim(),
         password: formData.password
       });
 
-      if (response.data.user) { // Changed from response.data.success to response.data.user
+      if (response.data.user) { 
         alert('Registration successful!');
-        navigate('/goHome'); // Navigate to home after successful registration
+        navigate('/goHome'); 
       }
     } catch (error) {
       if (error.response?.data?.message) {
         setErrors({ submit: error.response.data.message });
       } else if (error.response?.data?.error) {
-        // Handle MongoDB duplicate key error
         if (error.response.data.error.includes('duplicate key')) {
           setErrors({ submit: 'Email already exists' });
         } else {
@@ -112,6 +123,21 @@ function JoinUs() {
               {errors.submit}
             </div>
           )}
+
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              className={errors.username ? 'error' : ''}
+              placeholder="Enter your username (3-20 characters)"
+              disabled={loading}
+            />
+            {errors.username && <span className="error-text">{errors.username}</span>}
+          </div>
 
           <div className="form-group">
             <label htmlFor="name">Full Name</label>
