@@ -10,6 +10,7 @@ function Home() {
   
 
     <main class="main-content">
+      <br></br><br></br><br></br><br></br><br></br><br></br>
         <div class="hero-section">
             <h1 class="main-title">LITTLE NEST</h1>
             <p class="hero-subtitle">Where little dreams grow big</p>
@@ -23,5 +24,5 @@ function Home() {
     </div>
   )
 }
-//Home 
+//Home //home
 export default Home
