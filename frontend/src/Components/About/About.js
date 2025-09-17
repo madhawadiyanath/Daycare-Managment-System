@@ -19,7 +19,7 @@ function About() {
     document.querySelectorAll('.team-member, .value-card, .milestone').forEach(el => {
       observer.observe(el);
     });
-    
+    //new..
     return () => observer.disconnect();
   }, []);
 
