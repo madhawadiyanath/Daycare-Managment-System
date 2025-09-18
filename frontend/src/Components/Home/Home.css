@@ -5,6 +5,7 @@
     box-sizing: border-box;
 }
 
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #4A90E2;
@@ -21,6 +22,7 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
+    
 }
 
 .header-container {
@@ -355,6 +357,7 @@ body {
     .header {
         padding: 1rem;
     }
+    
 
     .nav-menu {
         position: fixed;
@@ -460,5 +463,7 @@ body {
         top: 6px;
         right: 1px;
     }
+    
+    
 }
 /*dkvnl*/

@@ -43,7 +43,7 @@ function Nav() {
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">About</a>
+                    <Link to="/AboutUs" class="nav-link">About</Link>
                 </li>
                 <li class="nav-item">
                     <Link to="/login" class="nav-link login-btn">Login</Link>
