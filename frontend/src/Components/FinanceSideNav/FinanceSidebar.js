@@ -55,13 +55,13 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
-            <Link to="/add-salary" className={`finance-sidebar__link ${isActive('/add-salary') ? 'is-active' : ''}`}>
+            <Link to="/SalaryDetails" className={`finance-sidebar__link ${isActive('/add-salary') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">➕</span>
               <span className="finance-sidebar__label">Add Salary</span>
             </Link>
           </li>
           <li>
-            <Link to="/salary-details" className={`finance-sidebar__link ${isActive('/salary-details') ? 'is-active' : ''}`}>
+            <Link to="/SalaryDetails" className={`finance-sidebar__link ${isActive('/salary-details') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">👥</span>
               <span className="finance-sidebar__label">Salary Details</span>
             </Link>
@@ -69,10 +69,11 @@ function FinanceSidebar() {
         </ul>
       </nav>
       <div className="finance-sidebar__footer">
-        <button type="button" className="finance-sidebar__logout">
+      <Link to="/goHome"><button type="button" className="finance-sidebar__logout">
           <span className="finance-sidebar__icon">⎋</span>
           <span>Logout</span>
         </button>
+        </Link>
       </div>
     </aside>
   )
