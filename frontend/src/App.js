@@ -9,6 +9,9 @@ import BillDetails from "./Components/BillDetails/BillDetails";
 import SalaryDetails from "./Components/SalaryDetails/SalaryDetails";
 import JoinUs from './Components/JoinUs/JoinUs';
 import About from './Components/About/About';
+import Login from './Components/Login/Login';
+import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
+
 function App() {
   return (
     <div className="App">
@@ -19,11 +22,13 @@ function App() {
           <Route path="/" element={<Home/>}/>
           <Route path="/goHome" element={<Home/>}/>
           <Route path="/mainfina" element={<Finace/>}/>
+          <Route path="/ChildcareDashboard" element={<ChildcareDashboard/>}/>
           <Route path="/AddBill" element={<AddUser/>}/>
           <Route path="/BillDetails" element={<BillDetails/>}/>
           <Route path="/SalaryDetails" element={<SalaryDetails/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
           <Route path="/AboutUs" element={<About/>}/>
+          <Route path="/login" element={<Login/>}/>
         </Routes>
       </React.Fragment>
     </div>
