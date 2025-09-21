@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Nav from "../Nav/Nav";
+import FinanceSidebar from "../FinanceSideNav/FinanceSidebar";
 import { Link } from "react-router-dom";
 import './Finance.css';
 import {
@@ -201,6 +202,7 @@ function Finance() {
   return (
     <div className="finance-container">
       <Nav/>
+      <FinanceSidebar/>
       <main className="main-content">
         <div className="finance-header">
           <h1>Financial Management</h1>
