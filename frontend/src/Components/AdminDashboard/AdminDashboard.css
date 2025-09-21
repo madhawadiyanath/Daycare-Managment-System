@@ -1,0 +1,9 @@
+.admin-dashboard { padding: 24px; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.admin-profile { display: flex; gap: 8px; align-items: center; color: #444; }
+.admin-profile .role { background:#eef; padding:4px 8px; border-radius: 6px; font-size: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+.card.stat h3 { margin: 0 0 8px 0; font-size: 14px; color: #666; }
+.card.stat p { margin: 0; font-size: 28px; font-weight: 700; color: #222; }
+.card.error { color: #b00020; border-color: #f3c6cb; background: #fde7e9; }

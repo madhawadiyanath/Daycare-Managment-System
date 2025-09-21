@@ -53,24 +53,46 @@ function Login() {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/users/login', {
-        username: formData.username.trim().toLowerCase(),
+      // 1) Try admin login first
+      const adminResp = await axios.post('http://localhost:5000/admin/login', {
+        username: formData.username.trim(),
         password: formData.password
       });
 
-      if (response.data.success) {
-        // Store user data in localStorage (in production, use more secure storage)
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        alert('Login successful!');
-        navigate('/goHome');
+      if (adminResp.data?.success) {
+        localStorage.setItem('admin', JSON.stringify(adminResp.data.admin));
+        alert('Admin login successful!');
+        navigate('/admin/dashboard');
+        return;
       }
     } catch (error) {
-      if (error.response?.data?.message) {
-        setErrors({ submit: error.response.data.message });
+      // If admin login failed with 401, try normal user login
+      if (error?.response?.status === 401) {
+        try {
+          const response = await axios.post('http://localhost:5000/users/login', {
+            username: formData.username.trim().toLowerCase(),
+            password: formData.password
+          });
+
+          if (response.data.success) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            alert('Login successful!');
+            navigate('/goHome');
+            return;
+          }
+        } catch (userErr) {
+          if (userErr.response?.data?.message) {
+            setErrors({ submit: userErr.response.data.message });
+          } else {
+            setErrors({ submit: 'Login failed. Please try again.' });
+          }
+          console.error('User login error:', userErr);
+        }
       } else {
+        // Non-auth error while calling admin login
         setErrors({ submit: 'Login failed. Please try again.' });
+        console.error('Admin login error:', error);
       }
-      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
