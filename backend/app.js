@@ -4,6 +4,8 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoute");
 const transactionRoutes = require("./routes/transactionRoute");
 const salaryRoutes = require("./routes/salaryRoute");
+const adminRoutes = require("./routes/adminRoute");
+const { createDefaultAdmin } = require("./models/AdminModel");
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/transactions", transactionRoutes);
 app.use("/salaries", salaryRoutes);
+app.use("/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");
@@ -33,9 +36,14 @@ app.use((error, req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://admin:5YdcKV1qUqM18Gkv@cluster0.8kk63n7.mongodb.net/finance_db?retryWrites=true&w=majority")
+mongoose.connect("mongodb+srv://minindu:SSm92Y3DC1jx5MHB@cluster0.qnygyj4.mongodb.net/")
   .then(() => {
     console.log("Connected to MongoDB");
+    
+    // Create default admin user if not exists
+    createDefaultAdmin().then(() => {
+      console.log('Admin initialization complete');
+    });
     
     app.listen(5000, () => {
       console.log("Server running on port 5000");

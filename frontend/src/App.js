@@ -11,6 +11,7 @@ import JoinUs from './Components/JoinUs/JoinUs';
 import About from './Components/About/About';
 import Login from './Components/Login/Login';
 import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
+import AdminDashboard from './Components/AdminDashboard/AdminDashboard';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/JoinUs" element={<JoinUs/>}/>
           <Route path="/AboutUs" element={<About/>}/>
           <Route path="/login" element={<Login/>}/>
+          <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
         </Routes>
       </React.Fragment>
     </div>
