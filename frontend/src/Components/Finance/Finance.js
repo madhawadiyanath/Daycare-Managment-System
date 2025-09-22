@@ -202,14 +202,15 @@ function Finance() {
   return (
     <div className="finance-container">
       <Nav/>
-      <FinanceSidebar/>
-      <main className="main-content">
-        <div className="finance-header">
-          <h1>Financial Management</h1>
-          <p>Manage your daycare's finances efficiently</p>
-        </div>
-
-        <div className="quick-stats">
+      <div style={{ display: 'flex', flex: '1' }}>
+        <FinanceSidebar/>
+        <main className="main-content">
+          <div className="finance-header">
+            <h1>Financial Management</h1>
+            <p>Manage your daycare's finances efficiently</p>
+          </div>
+          
+          <div className="quick-stats">
           <div className="stat-item">
             <i className="fas fa-arrow-down stat-icon expense"></i>
             <div className="stat-info">
@@ -360,6 +361,7 @@ function Finance() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }
