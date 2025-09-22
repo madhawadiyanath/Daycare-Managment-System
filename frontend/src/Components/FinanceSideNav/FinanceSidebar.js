@@ -9,6 +9,7 @@ function FinanceSidebar() {
   const isActive = (path) => location.pathname === path;
 
   return (
+    
     <aside className={`finance-sidebar ${collapsed ? 'is-collapsed' : ''}`}>
       <div className="finance-sidebar__title">
         <span>Finance</span>
@@ -31,7 +32,7 @@ function FinanceSidebar() {
       <nav>
         <ul className="finance-sidebar__nav">
           <li>
-            <Link to="/finance" className={`finance-sidebar__link ${isActive('/finance') ? 'is-active' : ''}`}>
+            <Link to="/mainfina" className={`finance-sidebar__link ${isActive('/finance') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">🏠</span>
               <span className="finance-sidebar__label">Finance Home</span>
             </Link>
@@ -76,6 +77,7 @@ function FinanceSidebar() {
         </Link>
       </div>
     </aside>
+    
   )
 }
 

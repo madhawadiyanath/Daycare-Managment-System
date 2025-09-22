@@ -33,6 +33,14 @@
     border-radius: 6px;
     padding: 6px 8px;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
   }
   
   .finance-sidebar__toggle:hover {
@@ -150,6 +158,8 @@
   .finance-sidebar.is-collapsed .finance-sidebar__logout span {
     display: none;
   }
+
+  
   
   
   
