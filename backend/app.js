@@ -6,6 +6,7 @@ const transactionRoutes = require("./routes/transactionRoute");
 const salaryRoutes = require("./routes/salaryRoute");
 const adminRoutes = require("./routes/adminRoute");
 const financeManagerRoutes = require("./routes/financeManagerRoute");
+const teacherRoutes = require("./routes/teacherRoute");
 const { createDefaultAdmin } = require("./models/AdminModel");
 
 const app = express();
@@ -20,6 +21,7 @@ app.use("/transactions", transactionRoutes);
 app.use("/salaries", salaryRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin/finance-managers", financeManagerRoutes);
+app.use("/admin/teachers", teacherRoutes);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");
