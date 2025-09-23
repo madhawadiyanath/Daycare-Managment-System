@@ -202,6 +202,7 @@ function Finance() {
   return (
     <div className="finance-container">
       <Nav/>
+      <br></br><br></br><br></br><br></br>
       <div style={{ display: 'flex', flex: '1' }}>
         <FinanceSidebar/>
         <main className="main-content">

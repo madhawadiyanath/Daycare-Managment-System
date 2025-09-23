@@ -435,6 +435,7 @@ function SalaryDetails() {
   return (
     <div className="salary-details-container">
       <Nav />
+      <br></br><br></br><br></br><br></br>
       <main className="main-content">
         <div className="salary-header">
           <h1>Salary Management</h1>
