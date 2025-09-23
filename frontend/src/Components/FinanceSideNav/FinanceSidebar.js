@@ -38,7 +38,7 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
-            <Link to="/add-expenses" className={`finance-sidebar__link ${isActive('/add-expenses') ? 'is-active' : ''}`}>
+            <Link to="/expense-details" className={`finance-sidebar__link ${isActive('/expense-details') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">💸</span>
               <span className="finance-sidebar__label">Expenses Details</span>
             </Link>
