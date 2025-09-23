@@ -1,9 +1,64 @@
 .admin-dashboard { padding: 24px; }
 .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.admin-header .subtitle { margin: 4px 0 0 0; color: #666; font-size: 14px; }
 .admin-profile { display: flex; gap: 8px; align-items: center; color: #444; }
 .admin-profile .role { background:#eef; padding:4px 8px; border-radius: 6px; font-size: 12px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 8px; border-bottom: 1px solid #eee; margin-bottom: 16px; }
+.tab-btn { 
+  padding: 10px 14px; 
+  background: transparent; 
+  border: none; 
+  border-bottom: 2px solid transparent; 
+  color: #555; 
+  cursor: pointer; 
+  font-weight: 600; 
+}
+.tab-btn:hover { color: #111; }
+.tab-btn.active { color: #0a58ca; border-color: #0a58ca; }
+
+/* Panels */
+.tab-panels { margin-top: 16px; }
+.panel { animation: fadeIn .2s ease-in; }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+/* Layout cards */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 .card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
 .card.stat h3 { margin: 0 0 8px 0; font-size: 14px; color: #666; }
 .card.stat p { margin: 0; font-size: 28px; font-weight: 700; color: #222; }
 .card.error { color: #b00020; border-color: #f3c6cb; background: #fde7e9; }
+
+/* Actions */
+.actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.btn { 
+  display: inline-block; 
+  padding: 10px 14px; 
+  border-radius: 8px; 
+  background: #0a58ca; 
+  color: #fff; 
+  text-decoration: none; 
+  transition: background .15s ease-in-out; 
+}
+.btn:hover { background: #0848a7; }
+
+/* Finance Manager form */
+.fm-form { display: grid; gap: 12px; }
+.fm-form .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.fm-form label { display: block; margin-bottom: 6px; color: #555; font-weight: 600; }
+.fm-form input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+.form-error { color: #b00020; background: #fde7e9; border: 1px solid #f3c6cb; padding: 8px 10px; border-radius: 8px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; }
+.table th { background: #fafafa; color: #555; font-weight: 700; }
+.list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* Button variants */
+.btn-secondary { background: #6c757d; }
+.btn-secondary:hover { background: #5c636a; }
+.btn-danger { background: #dc3545; }
+.btn-danger:hover { background: #bb2d3b; }
