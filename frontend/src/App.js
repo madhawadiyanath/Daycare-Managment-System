@@ -7,6 +7,7 @@ import AddUser from "./Components/AddBill/AddBill";
 import Finace from "./Components/Finance/Finance";
 import BillDetails from "./Components/BillDetails/BillDetails";
 import SalaryDetails from "./Components/SalaryDetails/SalaryDetails";
+import IncomeDetails from "./Components/IncomeDetails/IncomeDetails";
 import JoinUs from './Components/JoinUs/JoinUs';
 import About from './Components/About/About';
 import Login from './Components/Login/Login';
@@ -27,6 +28,7 @@ function App() {
           <Route path="/AddBill" element={<AddUser/>}/>
           <Route path="/BillDetails" element={<BillDetails/>}/>
           <Route path="/SalaryDetails" element={<SalaryDetails/>}/>
+          <Route path="/income-details" element={<IncomeDetails/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
           <Route path="/AboutUs" element={<About/>}/>
           <Route path="/login" element={<Login/>}/>

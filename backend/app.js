@@ -4,6 +4,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoute");
 const transactionRoutes = require("./routes/transactionRoute");
 const salaryRoutes = require("./routes/salaryRoute");
+const incomeRoutes = require("./routes/IncomeRoute");
 const adminRoutes = require("./routes/adminRoute");
 const financeManagerRoutes = require("./routes/financeManagerRoute");
 const { createDefaultAdmin } = require("./models/AdminModel");
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/transactions", transactionRoutes);
 app.use("/salaries", salaryRoutes);
+app.use("/incomes", incomeRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin/finance-managers", financeManagerRoutes);
 
