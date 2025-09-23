@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Nav from '../Nav/Nav';
+import FinanceSidebar from '../FinanceSideNav/FinanceSidebar';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -398,7 +399,9 @@ function ProfitLoss() {
     <div className="profit-loss-container">
       <Nav />
       <br></br><br></br><br></br><br></br>
-      <main className="main-content">
+      <div style={{ display: 'flex', flex: '1' }}>
+        <FinanceSidebar />
+        <main className="main-content">
         <div className="profit-loss-header">
           <h1>Profit & Loss Analysis</h1>
           <p>Calculate and analyze your daycare's financial performance</p>
@@ -512,6 +515,7 @@ function ProfitLoss() {
           )}
         </div>
       </main>
+      </div>
     </div>
   );
 }

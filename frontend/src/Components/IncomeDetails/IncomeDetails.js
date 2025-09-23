@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Nav from '../Nav/Nav';
+import FinanceSidebar from '../FinanceSideNav/FinanceSidebar';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -424,7 +425,9 @@ function IncomeDetails() {
     <div className="income-details-container">
       <Nav />
       <br></br><br></br><br></br><br></br>
-      <main className="main-content">
+      <div style={{ display: 'flex', flex: '1' }}>
+        <FinanceSidebar />
+        <main className="main-content">
         <div className="income-header">
           <h1>Income Management</h1>
           <p>Manage daycare income records and financial tracking</p>
@@ -618,6 +621,7 @@ function IncomeDetails() {
           )}
         </div>
       </main>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Nav from '../Nav/Nav';
+import FinanceSidebar from '../FinanceSideNav/FinanceSidebar';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -309,7 +310,9 @@ function IncomesAndExpenses() {
     <div className="incomes-expenses-container">
       <Nav />
       <br /><br /><br /><br />
-      <main className="main-content">
+      <div style={{ display: 'flex', flex: '1' }}>
+        <FinanceSidebar />
+        <main className="main-content">
         <div className="page-header">
           <h1>Incomes & Expenses Overview</h1>
           <p>Comprehensive view of all financial transactions</p>
@@ -446,6 +449,7 @@ function IncomesAndExpenses() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }
