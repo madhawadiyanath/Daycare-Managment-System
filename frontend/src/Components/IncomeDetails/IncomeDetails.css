@@ -313,9 +313,11 @@
   transform: translateX(5px);
 }
 
-.amount {
+.amount-cell {
   font-weight: 600;
-  color: #28a745;
+  text-align: right;
+  white-space: nowrap;
+  color: #059669;
 }
 
 .description {

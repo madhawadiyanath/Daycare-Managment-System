@@ -313,8 +313,10 @@
   transform: translateX(5px);
 }
 
-.amount {
+.amount-cell {
   font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
   color: #dc2626;
 }
 

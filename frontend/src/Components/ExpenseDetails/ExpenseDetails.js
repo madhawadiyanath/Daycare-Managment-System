@@ -606,7 +606,7 @@ function ExpenseDetails() {
                   {filteredExpenses.map((expense) => (
                     <tr key={expense._id} className="expense-row">
                       <td>{expense.title || 'N/A'}</td>
-                      <td className="amount">Rs {(expense.amount || 0).toFixed(2)}</td>
+                      <td className="amount-cell">Rs {expense.amount.toFixed(2)}</td>
                       <td>{expense.category || 'N/A'}</td>
                       <td>{new Date(expense.date).toLocaleDateString() || 'N/A'}</td>
                       <td className="description">{expense.description || 'N/A'}</td>

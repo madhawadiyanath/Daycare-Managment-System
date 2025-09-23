@@ -595,7 +595,7 @@ function IncomeDetails() {
                   {filteredIncomes.map((income) => (
                     <tr key={income._id} className="income-row">
                       <td>{income.title || 'N/A'}</td>
-                      <td className="amount">Rs {(income.amount || 0).toFixed(2)}</td>
+                      <td className="amount-cell">Rs {income.amount.toFixed(2)}</td>
                       <td>{income.category || 'N/A'}</td>
                       <td>{new Date(income.date).toLocaleDateString() || 'N/A'}</td>
                       <td className="description">{income.description || 'N/A'}</td>
