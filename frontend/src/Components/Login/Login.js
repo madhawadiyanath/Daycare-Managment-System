@@ -65,33 +65,52 @@ function Login() {
         navigate('/admin/dashboard');
         return;
       }
-    } catch (error) {
-      // If admin login failed with 401, try normal user login
-      if (error?.response?.status === 401) {
+    } catch (adminErr) {
+      // 2) If admin fails with 401, try Finance Manager login
+      if (adminErr?.response?.status === 401) {
         try {
-          const response = await axios.post('http://localhost:5000/users/login', {
-            username: formData.username.trim().toLowerCase(),
+          const fmResp = await axios.post('http://localhost:5000/admin/finance-managers/login', {
+            username: formData.username.trim(),
             password: formData.password
           });
-
-          if (response.data.success) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            alert('Login successful!');
-            navigate('/goHome');
+          if (fmResp.data?.success) {
+            localStorage.setItem('financeManager', JSON.stringify(fmResp.data.manager));
+            alert('Finance Manager login successful!');
+            navigate('/mainfina');
             return;
           }
-        } catch (userErr) {
-          if (userErr.response?.data?.message) {
-            setErrors({ submit: userErr.response.data.message });
+        } catch (fmErr) {
+          // 3) If FM fails with 401, try normal user login
+          if (fmErr?.response?.status === 401) {
+            try {
+              const response = await axios.post('http://localhost:5000/users/login', {
+                username: formData.username.trim().toLowerCase(),
+                password: formData.password
+              });
+
+              if (response.data.success) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                alert('Login successful!');
+                navigate('/goHome');
+                return;
+              }
+            } catch (userErr) {
+              if (userErr.response?.data?.message) {
+                setErrors({ submit: userErr.response.data.message });
+              } else {
+                setErrors({ submit: 'Login failed. Please try again.' });
+              }
+              console.error('User login error:', userErr);
+            }
           } else {
             setErrors({ submit: 'Login failed. Please try again.' });
+            console.error('Finance manager login error:', fmErr);
           }
-          console.error('User login error:', userErr);
         }
       } else {
         // Non-auth error while calling admin login
         setErrors({ submit: 'Login failed. Please try again.' });
-        console.error('Admin login error:', error);
+        console.error('Admin login error:', adminErr);
       }
     } finally {
       setLoading(false);
