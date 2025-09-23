@@ -38,9 +38,9 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
-            <Link to="/add-expenses" className={`finance-sidebar__link ${isActive('/add-expenses') ? 'is-active' : ''}`}>
+            <Link to="/expense-details" className={`finance-sidebar__link ${isActive('/expense-details') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">💸</span>
-              <span className="finance-sidebar__label">Add Expenses</span>
+              <span className="finance-sidebar__label">Expenses Details</span>
             </Link>
           </li>
           <li>
@@ -50,15 +50,15 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
-            <Link to="/profit-loss" className={`finance-sidebar__link ${isActive('/profit-loss') ? 'is-active' : ''}`}>
-              <span className="finance-sidebar__icon">📊</span>
-              <span className="finance-sidebar__label">Profit & Loss</span>
+            <Link to="/incomes-expenses" className={`finance-sidebar__link ${isActive('/incomes-expenses') ? 'is-active' : ''}`}>
+              <span className="finance-sidebar__icon">📋</span>
+              <span className="finance-sidebar__label">Incomes and Expenses</span>
             </Link>
           </li>
           <li>
-            <Link to="/SalaryDetails" className={`finance-sidebar__link ${isActive('/add-salary') ? 'is-active' : ''}`}>
-              <span className="finance-sidebar__icon">➕</span>
-              <span className="finance-sidebar__label">Add Salary</span>
+            <Link to="/profit-loss" className={`finance-sidebar__link ${isActive('/profit-loss') ? 'is-active' : ''}`}>
+              <span className="finance-sidebar__icon">📊</span>
+              <span className="finance-sidebar__label">Profit & Loss</span>
             </Link>
           </li>
           <li>
