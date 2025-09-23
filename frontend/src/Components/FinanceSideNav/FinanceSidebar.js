@@ -50,6 +50,12 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
+            <Link to="/incomes-expenses" className={`finance-sidebar__link ${isActive('/incomes-expenses') ? 'is-active' : ''}`}>
+              <span className="finance-sidebar__icon">📋</span>
+              <span className="finance-sidebar__label">Incomes and Expenses</span>
+            </Link>
+          </li>
+          <li>
             <Link to="/profit-loss" className={`finance-sidebar__link ${isActive('/profit-loss') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">📊</span>
               <span className="finance-sidebar__label">Profit & Loss</span>
