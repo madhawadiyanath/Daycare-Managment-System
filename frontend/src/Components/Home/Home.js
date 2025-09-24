@@ -295,9 +295,9 @@ function Home() {
                   <p>"Little Nest has been a blessing for our family. The attendance tracking feature gives me peace of mind knowing exactly when my daughter arrives and leaves. The staff is amazing!"</p>
                 </div>
                 <div className="testimonial-author">
-                  <div className="author-avatar">👩</div>
+                  <div className="author-avatar"><img className="finance-sidebar__avatar" src="https://avatars.githubusercontent.com/u/209880437?v=4" alt="Admin" /></div>
                   <div className="author-info">
-                    <h4>Sarah Johnson</h4>
+                    <h4>Yashod Ralapanawa</h4>
                     <span>Premium Plan User</span>
                   </div>
                 </div>
@@ -309,9 +309,9 @@ function Home() {
                   <p>"The payment management system is so convenient! I love getting notifications and being able to track all payments through the parent app. Highly recommend!"</p>
                 </div>
                 <div className="testimonial-author">
-                  <div className="author-avatar">👨</div>
+                  <div className="author-avatar"><img className="finance-sidebar__avatar" src="https://th.bing.com/th/id/OIP.TSHMOOeFLYl4cwrewm8_FwHaKp?w=208&h=299&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3" alt="Admin" /></div>
                   <div className="author-info">
-                    <h4>Michael Chen</h4>
+                    <h4>Nadhika Wimalasooriya</h4>
                     <span>Basic Plan User</span>
                   </div>
                 </div>
@@ -320,12 +320,12 @@ function Home() {
               <div className="testimonial-card">
                 <div className="testimonial-content">
                   <div className="quote-icon">"</div>
-                  <p>"As a working mom, the parent app access is invaluable. I can check on my son throughout the day and stay connected with his caregivers. The photo sharing feature is wonderful!"</p>
+                  <p>"As a working father, the parent app access is invaluable. I can check on my son throughout the day and stay connected with his caregivers. The photo sharing feature is wonderful!"</p>
                 </div>
                 <div className="testimonial-author">
-                  <div className="author-avatar">👩‍💼</div>
+                  <div className="author-avatar"><img className="finance-sidebar__avatar" src="https://avatars.githubusercontent.com/u/170708230?v=4" alt="Admin" /></div>
                   <div className="author-info">
-                    <h4>Emily Rodriguez</h4>
+                    <h4>Kasun Musthapa</h4>
                     <span>Premium Plan User</span>
                   </div>
                 </div>
