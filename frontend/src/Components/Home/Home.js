@@ -136,15 +136,199 @@ function Home() {
           </div>
         </section>
         
+        <section className="pricing-section">
+          <div className="container">
+            <h2 className="section-title">Choose Your Perfect Plan</h2>
+            <p className="section-subtitle">Select the package that best fits your family's needs</p>
+            
+            <div className="pricing-grid">
+              {/* Basic Package */}
+              <div className="pricing-card basic">
+                <div className="pricing-content">
+                  <div className="pricing-header">
+                    <h3>Basic</h3>
+                    <div className="price">
+                      <span className="currency">$</span>
+                      <span className="amount">299</span>
+                      <span className="period">/month</span>
+                    </div>
+                  </div>
+                  <div className="pricing-features">
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Attendance Tracking</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Payment Management</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Parent App Access</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Basic Reporting</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Email Support</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pricing-button-wrapper">
+                  <button className="pricing-btn basic-btn">Get Started</button>
+                </div>
+              </div>
+
+              {/* Premium Package - Most Popular */}
+              <div className="pricing-card premium most-popular">
+                <div className="popular-badge">
+                  <span>🌟 Most Popular</span>
+                </div>
+                <div className="pricing-content">
+                  <div className="pricing-header">
+                    <h3>Premium</h3>
+                    <div className="price">
+                      <span className="currency">$</span>
+                      <span className="amount">499</span>
+                      <span className="period">/month</span>
+                    </div>
+                  </div>
+                  <div className="pricing-features">
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Attendance Tracking</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Payment Management</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Parent App Access</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Advanced Analytics</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Photo Sharing</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Priority Support</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Custom Branding</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pricing-button-wrapper">
+                  <button className="pricing-btn premium-btn">Choose Premium</button>
+                </div>
+              </div>
+
+              {/* Enterprise Package */}
+              <div className="pricing-card enterprise">
+                <div className="pricing-content">
+                  <div className="pricing-header">
+                    <h3>Enterprise</h3>
+                    <div className="price">
+                      <span className="currency">$</span>
+                      <span className="amount">799</span>
+                      <span className="period">/month</span>
+                    </div>
+                  </div>
+                  <div className="pricing-features">
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Attendance Tracking</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Payment Management</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>✅ Parent App Access</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Everything in Premium</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Multi-Location Support</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>API Access</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>24/7 Phone Support</span>
+                    </div>
+                    <div className="feature">
+                      <i className="fas fa-check"></i>
+                      <span>Dedicated Account Manager</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pricing-button-wrapper">
+                  <button className="pricing-btn enterprise-btn">Contact Sales</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="testimonials-section">
           <div className="container">
             <h2 className="section-title">Happy Parents Say</h2>
-            <div className="testimonial-slider">
-              <div className="testimonial">
+            <div className="testimonials-grid">
+              <div className="testimonial-card">
                 <div className="testimonial-content">
-                  "Little Nest has been a blessing for our family. Our daughter loves coming here every day!"
+                  <div className="quote-icon">"</div>
+                  <p>"Little Nest has been a blessing for our family. The attendance tracking feature gives me peace of mind knowing exactly when my daughter arrives and leaves. The staff is amazing!"</p>
                 </div>
-                <div className="testimonial-author">- Sarah Johnson</div>
+                <div className="testimonial-author">
+                  <div className="author-avatar">👩</div>
+                  <div className="author-info">
+                    <h4>Sarah Johnson</h4>
+                    <span>Premium Plan User</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="testimonial-card">
+                <div className="testimonial-content">
+                  <div className="quote-icon">"</div>
+                  <p>"The payment management system is so convenient! I love getting notifications and being able to track all payments through the parent app. Highly recommend!"</p>
+                </div>
+                <div className="testimonial-author">
+                  <div className="author-avatar">👨</div>
+                  <div className="author-info">
+                    <h4>Michael Chen</h4>
+                    <span>Basic Plan User</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="testimonial-card">
+                <div className="testimonial-content">
+                  <div className="quote-icon">"</div>
+                  <p>"As a working mom, the parent app access is invaluable. I can check on my son throughout the day and stay connected with his caregivers. The photo sharing feature is wonderful!"</p>
+                </div>
+                <div className="testimonial-author">
+                  <div className="author-avatar">👩‍💼</div>
+                  <div className="author-info">
+                    <h4>Emily Rodriguez</h4>
+                    <span>Premium Plan User</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
