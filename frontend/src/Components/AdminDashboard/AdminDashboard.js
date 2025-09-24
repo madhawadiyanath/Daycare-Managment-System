@@ -17,6 +17,20 @@ function AdminDashboard() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
 
+  // Teachers state
+  const [tList, setTList] = useState([]);
+  const [tLoading, setTLoading] = useState(false);
+  const [tError, setTError] = useState('');
+  const [tForm, setTForm] = useState({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
+  const [tEditingId, setTEditingId] = useState(null);
+  const [tEditForm, setTEditForm] = useState({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
+
+  // Staff state
+  const [sList, setSList] = useState([]);
+  const [sLoading, setSLoading] = useState(false);
+  const [sError, setSError] = useState('');
+  const [sForm, setSForm] = useState({ name: '', email: '', phone: '', role: '', username: '', password: '' });
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -28,7 +42,6 @@ function AdminDashboard() {
         setLoading(false);
       }
     };
-
     fetchDashboard();
   }, []);
 
@@ -46,10 +59,27 @@ function AdminDashboard() {
     }
   };
 
+  // Fetch teachers
+  const fetchTeachers = async () => {
+    try {
+      setTLoading(true);
+      setTError('');
+      const res = await axios.get('http://localhost:5000/admin/teachers');
+      setTList(res.data?.data || []);
+    } catch (err) {
+      setTError(err?.response?.data?.message || 'Failed to load teachers');
+    } finally {
+      setTLoading(false);
+    }
+  };
+
   // Load managers when Finance tab becomes active
   useEffect(() => {
     if (activeTab === 'finance') {
       fetchManagers();
+    }
+    if (activeTab === 'teacher') {
+      fetchTeachers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -401,9 +431,270 @@ function AdminDashboard() {
 
         {activeTab === 'teacher' && (
           <div className="panel">
+            {/* Add Teacher */}
             <div className="card">
-              <h3>Teacher Management</h3>
-              <p>Coming soon: manage teachers, schedules, and classes.</p>
+              <h3>Add Teacher</h3>
+              <form
+                className="fm-form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setTError('');
+                  if (!tForm.name.trim() || !tForm.email.trim() || !tForm.username.trim() || !tForm.password) {
+                    setTError('Name, Email, Username and Password are required');
+                    return;
+                  }
+                  try {
+                    const res = await axios.post('http://localhost:5000/admin/teachers', {
+                      name: tForm.name.trim(),
+                      email: tForm.email.trim().toLowerCase(),
+                      phone: tForm.phone.trim(),
+                      subject: tForm.subject.trim(),
+                      username: tForm.username.trim(),
+                      password: tForm.password,
+                    });
+                    if (res.data?.success) {
+                      setTForm({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
+                      await fetchTeachers();
+                    } else {
+                      setTError(res.data?.message || 'Failed to create');
+                    }
+                  } catch (err) {
+                    setTError(err?.response?.data?.message || 'Failed to create');
+                  }
+                }}
+              >
+                <div className="row">
+                  <div className="col">
+                    <label>Name</label>
+                    <input
+                      type="text"
+                      value={tForm.name}
+                      onChange={(e) => setTForm({ ...tForm, name: e.target.value })}
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={tForm.email}
+                      onChange={(e) => setTForm({ ...tForm, email: e.target.value })}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Username</label>
+                    <input
+                      type="text"
+                      value={tForm.username}
+                      onChange={(e) => setTForm({ ...tForm, username: e.target.value })}
+                      placeholder="Unique username"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Password</label>
+                    <input
+                      type="password"
+                      value={tForm.password}
+                      onChange={(e) => setTForm({ ...tForm, password: e.target.value })}
+                      placeholder="Min 6 characters"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Phone</label>
+                    <input
+                      type="text"
+                      value={tForm.phone}
+                      onChange={(e) => setTForm({ ...tForm, phone: e.target.value })}
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Subject</label>
+                    <input
+                      type="text"
+                      value={tForm.subject}
+                      onChange={(e) => setTForm({ ...tForm, subject: e.target.value })}
+                      placeholder="e.g., Math, Science"
+                    />
+                  </div>
+                </div>
+                {tError && <div className="form-error">{tError}</div>}
+                <button className="btn" type="submit">Add Teacher</button>
+              </form>
+            </div>
+
+            {/* List Teachers */}
+            <div className="card">
+              <div className="list-header">
+                <h3>Teachers</h3>
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  onClick={async () => { await fetchTeachers(); }}
+                >
+                  Refresh
+                </button>
+              </div>
+              {tLoading ? (
+                <p>Loading...</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Subject</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tList.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" style={{ textAlign: 'center' }}>No teachers yet</td>
+                        </tr>
+                      ) : (
+                        tList.map((t) => (
+                          <tr key={t._id}>
+                            {tEditingId === t._id ? (
+                              <>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={tEditForm.name}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, name: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={tEditForm.username}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, username: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="email"
+                                    value={tEditForm.email}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, email: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={tEditForm.phone || ''}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, phone: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={tEditForm.subject || ''}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, subject: e.target.value })}
+                                  />
+                                </td>
+                                <td className="actions-cell">
+                                  <input
+                                    className="table-input"
+                                    type="password"
+                                    placeholder="New password (optional)"
+                                    value={tEditForm.password || ''}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, password: e.target.value })}
+                                  />
+                                  <div className="row-actions">
+                                    <button
+                                      className="btn"
+                                      type="button"
+                                      onClick={async () => {
+                                        if (!tEditForm.name.trim() || !tEditForm.email.trim() || !tEditForm.username.trim()) {
+                                          alert('Name, Email, and Username are required');
+                                          return;
+                                        }
+                                        try {
+                                          await axios.put(`http://localhost:5000/admin/teachers/${t._id}`, {
+                                            name: tEditForm.name.trim(),
+                                            email: tEditForm.email.trim().toLowerCase(),
+                                            phone: tEditForm.phone?.trim?.() || '',
+                                            subject: tEditForm.subject?.trim?.() || '',
+                                            username: tEditForm.username.trim(),
+                                            password: tEditForm.password || undefined,
+                                          });
+                                          setTEditingId(null);
+                                          setTEditForm({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
+                                          await fetchTeachers();
+                                        } catch (err) {
+                                          alert(err?.response?.data?.message || 'Failed to update');
+                                        }
+                                      }}
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      className="btn btn-secondary"
+                                      type="button"
+                                      onClick={() => {
+                                        setTEditingId(null);
+                                        setTEditForm({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td>{t.name}</td>
+                                <td>{t.username}</td>
+                                <td>{t.email}</td>
+                                <td>{t.phone || '-'}</td>
+                                <td>{t.subject || '-'}</td>
+                                <td className="actions-cell">
+                                  <div className="row-actions">
+                                    <button
+                                      className="btn btn-secondary"
+                                      type="button"
+                                      onClick={() => {
+                                        setTEditingId(t._id);
+                                        setTEditForm({ name: t.name || '', email: t.email || '', phone: t.phone || '', subject: t.subject || '', username: t.username || '', password: '' });
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      className="btn btn-danger"
+                                      type="button"
+                                      onClick={async () => {
+                                        if (!window.confirm('Delete this teacher?')) return;
+                                        try {
+                                          await axios.delete(`http://localhost:5000/admin/teachers/${t._id}`);
+                                          await fetchTeachers();
+                                        } catch (err) {
+                                          alert('Failed to delete');
+                                        }
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

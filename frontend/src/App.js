@@ -16,6 +16,7 @@ import About from './Components/About/About';
 import Login from './Components/Login/Login';
 import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
 import AdminDashboard from './Components/AdminDashboard/AdminDashboard';
+import TeacherDashboard from './Components/TeacherDashboard/TeacherDashboard';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/AboutUs" element={<About/>}/>
           <Route path="/login" element={<Login/>}/>
           <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
+          <Route path="/teacher/dashboard" element={<TeacherDashboard/>}/>
         </Routes>
       </React.Fragment>
     </div>
