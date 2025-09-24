@@ -148,8 +148,8 @@ function Home() {
                   <div className="pricing-header">
                     <h3>Basic</h3>
                     <div className="price">
-                      <span className="currency">$</span>
-                      <span className="amount">299</span>
+                      <span className="currency">Rs.</span>
+                      <span className="amount">89,700</span>
                       <span className="period">/month</span>
                     </div>
                   </div>
@@ -190,8 +190,8 @@ function Home() {
                   <div className="pricing-header">
                     <h3>Premium</h3>
                     <div className="price">
-                      <span className="currency">$</span>
-                      <span className="amount">499</span>
+                      <span className="currency">Rs.</span>
+                      <span className="amount">149,700</span>
                       <span className="period">/month</span>
                     </div>
                   </div>
@@ -237,8 +237,8 @@ function Home() {
                   <div className="pricing-header">
                     <h3>Enterprise</h3>
                     <div className="price">
-                      <span className="currency">$</span>
-                      <span className="amount">799</span>
+                      <span className="currency">Rs.</span>
+                      <span className="amount">239,700</span>
                       <span className="period">/month</span>
                     </div>
                   </div>
