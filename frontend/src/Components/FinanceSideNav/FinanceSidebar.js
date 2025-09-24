@@ -23,10 +23,10 @@ function FinanceSidebar() {
         </button>
       </div>
       <div className="finance-sidebar__profile">
-        <img className="finance-sidebar__avatar" src="https://i.pravatar.cc/80?img=13" alt="Admin" />
+        <img className="finance-sidebar__avatar" src="https://avatars.githubusercontent.com/u/181889593?v=4" alt="Admin" />
         <div className="finance-sidebar__user">
-          <span className="finance-sidebar__name">Admin User</span>
-          <span className="finance-sidebar__email">admin@example.com</span>
+          <span className="finance-sidebar__name">Finance Admin</span>
+          <span className="finance-sidebar__email">madhawadiyanath@gmail.com</span>
         </div>
       </div>
       <nav>

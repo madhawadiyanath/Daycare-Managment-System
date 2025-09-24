@@ -118,8 +118,10 @@ function AddBill() {
   };
 
   return (
+    
     <div className="add-bill-container">
       <Nav/>
+      <br></br><br></br><br></br><br></br><br></br><br></br>
       <h2>Add Financial Transaction</h2>
       
       {message && (
