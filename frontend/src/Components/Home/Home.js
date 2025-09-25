@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Nav from "../Nav/Nav";
 import './Home.css';
 
 function Home() {
+  const navigate = useNavigate();
   const [scrollPosition, setScrollPosition] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -56,6 +58,10 @@ function Home() {
 
   const goToSlide = (index) => {
     setCurrentSlide(index);
+  };
+
+  const handlePackageSelect = (packageType) => {
+    navigate(`/payment?package=${packageType}`);
   };
 
   return (
@@ -177,7 +183,7 @@ function Home() {
                   </div>
                 </div>
                 <div className="pricing-button-wrapper">
-                  <button className="pricing-btn basic-btn">Get Started</button>
+                  <button className="pricing-btn basic-btn" onClick={() => handlePackageSelect('basic')}>Get Started</button>
                 </div>
               </div>
 
@@ -227,7 +233,7 @@ function Home() {
                   </div>
                 </div>
                 <div className="pricing-button-wrapper">
-                  <button className="pricing-btn premium-btn">Choose Premium</button>
+                  <button className="pricing-btn premium-btn" onClick={() => handlePackageSelect('premium')}>Choose Premium</button>
                 </div>
               </div>
 
@@ -278,7 +284,7 @@ function Home() {
                   </div>
                 </div>
                 <div className="pricing-button-wrapper">
-                  <button className="pricing-btn enterprise-btn">Contact Sales</button>
+                  <button className="pricing-btn enterprise-btn" onClick={() => handlePackageSelect('enterprise')}>Contact Sales</button>
                 </div>
               </div>
             </div>
