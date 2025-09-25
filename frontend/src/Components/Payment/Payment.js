@@ -60,9 +60,31 @@ function Payment() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let filteredValue = value;
+
+    // Validation for customer name - only letters and spaces
+    if (name === 'customerName') {
+      filteredValue = value.replace(/[^A-Za-z\s]/g, '');
+    }
+    
+    // Validation for phone number - only digits
+    if (name === 'phone') {
+      filteredValue = value.replace(/[^0-9]/g, '');
+    }
+    
+    // Validation for CVV - only digits
+    if (name === 'cvv') {
+      filteredValue = value.replace(/[^0-9]/g, '');
+    }
+    
+    // Validation for name on card - only letters and spaces
+    if (name === 'nameOnCard') {
+      filteredValue = value.replace(/[^A-Za-z\s]/g, '');
+    }
+
     setPaymentData(prev => ({
       ...prev,
-      [name]: value
+      [name]: filteredValue
     }));
     
     // Clear error when user starts typing
