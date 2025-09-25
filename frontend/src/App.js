@@ -11,6 +11,8 @@ import IncomeDetails from "./Components/IncomeDetails/IncomeDetails";
 import ExpenseDetails from "./Components/ExpenseDetails/ExpenseDetails";
 import ProfitLoss from "./Components/ProfitLoss/ProfitLoss";
 import IncomesAndExpenses from "./Components/IncomesAndExpenses/IncomesAndExpenses";
+import Payment from "./Components/Payment/Payment";
+import PaymentReceipt from "./Components/PaymentReceipt/PaymentReceipt";
 import JoinUs from './Components/JoinUs/JoinUs';
 import About from './Components/About/About';
 import Login from './Components/Login/Login';
@@ -36,6 +38,8 @@ function App() {
           <Route path="/expense-details" element={<ExpenseDetails/>}/>
           <Route path="/profit-loss" element={<ProfitLoss/>}/>
           <Route path="/incomes-expenses" element={<IncomesAndExpenses/>}/>
+          <Route path="/payment" element={<Payment/>}/>
+          <Route path="/payment-receipt" element={<PaymentReceipt/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
           <Route path="/AboutUs" element={<About/>}/>
           <Route path="/login" element={<Login/>}/>
