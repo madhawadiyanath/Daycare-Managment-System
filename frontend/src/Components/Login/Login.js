@@ -94,27 +94,46 @@ function Login() {
                 return;
               }
             } catch (tErr) {
-              // 4) If Teacher fails with 401, try normal user login
+              // 4) If Teacher fails with 401, try Staff login
               if (tErr?.response?.status === 401) {
                 try {
-                  const response = await axios.post('http://localhost:5000/users/login', {
-                    username: formData.username.trim().toLowerCase(),
+                  const sResp = await axios.post('http://localhost:5000/admin/staff/login', {
+                    username: formData.username.trim(),
                     password: formData.password
                   });
-
-                  if (response.data.success) {
-                    localStorage.setItem('user', JSON.stringify(response.data.user));
-                    alert('Login successful!');
-                    navigate('/goHome');
+                  if (sResp.data?.success) {
+                    localStorage.setItem('staff', JSON.stringify(sResp.data.staff));
+                    alert('Staff login successful!');
+                    navigate('/staff/dashboard');
                     return;
                   }
-                } catch (userErr) {
-                  if (userErr.response?.data?.message) {
-                    setErrors({ submit: userErr.response.data.message });
+                } catch (sErr) {
+                  // 5) If Staff fails with 401, try normal user login
+                  if (sErr?.response?.status === 401) {
+                    try {
+                      const response = await axios.post('http://localhost:5000/users/login', {
+                        username: formData.username.trim().toLowerCase(),
+                        password: formData.password
+                      });
+
+                      if (response.data.success) {
+                        localStorage.setItem('user', JSON.stringify(response.data.user));
+                        alert('Login successful!');
+                        navigate('/goHome');
+                        return;
+                      }
+                    } catch (userErr) {
+                      if (userErr.response?.data?.message) {
+                        setErrors({ submit: userErr.response.data.message });
+                      } else {
+                        setErrors({ submit: 'Login failed. Please try again.' });
+                      }
+                      console.error('User login error:', userErr);
+                    }
                   } else {
                     setErrors({ submit: 'Login failed. Please try again.' });
+                    console.error('Staff login error:', sErr);
                   }
-                  console.error('User login error:', userErr);
                 }
               } else {
                 setErrors({ submit: 'Login failed. Please try again.' });
