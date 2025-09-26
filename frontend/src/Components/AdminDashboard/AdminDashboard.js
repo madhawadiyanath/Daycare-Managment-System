@@ -33,6 +33,15 @@ function AdminDashboard() {
   const [sEditingId, setSEditingId] = useState(null);
   const [sEditForm, setSEditForm] = useState({ name: '', email: '', phone: '', role: '', username: '', password: '' });
 
+  // Inventory Managers state
+  const [imList, setImList] = useState([]);
+  const [imLoading, setImLoading] = useState(false);
+  const [imError, setImError] = useState('');
+  const [imForm, setImForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
+  const [imSubmitting, setImSubmitting] = useState(false);
+  const [imEditingId, setImEditingId] = useState(null);
+  const [imEditForm, setImEditForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -89,6 +98,20 @@ function AdminDashboard() {
     }
   };
 
+  // Fetch inventory managers
+  const fetchInventoryManagers = async () => {
+    try {
+      setImLoading(true);
+      setImError('');
+      const res = await axios.get('http://localhost:5000/admin/inventory-managers');
+      setImList(res.data?.data || []);
+    } catch (err) {
+      setImError(err?.response?.data?.message || 'Failed to load inventory managers');
+    } finally {
+      setImLoading(false);
+    }
+  };
+
   // Load managers when Finance tab becomes active
   useEffect(() => {
     if (activeTab === 'finance') {
@@ -99,6 +122,9 @@ function AdminDashboard() {
     }
     if (activeTab === 'staff') {
       fetchStaff();
+    }
+    if (activeTab === 'inventory') {
+      fetchInventoryManagers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -926,9 +952,252 @@ function AdminDashboard() {
 
         {activeTab === 'inventory' && (
           <div className="panel">
+            {/* Add Inventory Manager */}
             <div className="card">
-              <h3>Inventory Manager</h3>
-              <p>Coming soon: track supplies, items, and inventory levels.</p>
+              <h3>Add Inventory Manager</h3>
+              <form
+                className="fm-form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setImError('');
+                  if (!imForm.name.trim() || !imForm.email.trim() || !imForm.username.trim() || !imForm.password) {
+                    setImError('Name, Email, Username and Password are required');
+                    return;
+                  }
+                  setImSubmitting(true);
+                  try {
+                    const res = await axios.post('http://localhost:5000/admin/inventory-managers', {
+                      name: imForm.name.trim(),
+                      email: imForm.email.trim().toLowerCase(),
+                      phone: imForm.phone.trim(),
+                      username: imForm.username.trim(),
+                      password: imForm.password,
+                    });
+                    if (res.data?.success) {
+                      setImForm({ name: '', email: '', phone: '', username: '', password: '' });
+                      await fetchInventoryManagers();
+                      alert('Inventory manager added');
+                    } else {
+                      setImError(res.data?.message || 'Failed to create');
+                    }
+                  } catch (err) {
+                    setImError(err?.response?.data?.message || 'Failed to create');
+                  } finally {
+                    setImSubmitting(false);
+                  }
+                }}
+              >
+                <div className="row">
+                  <div className="col">
+                    <label>Name</label>
+                    <input
+                      type="text"
+                      value={imForm.name}
+                      onChange={(e) => setImForm({ ...imForm, name: e.target.value })}
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={imForm.email}
+                      onChange={(e) => setImForm({ ...imForm, email: e.target.value })}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Username</label>
+                    <input
+                      type="text"
+                      value={imForm.username}
+                      onChange={(e) => setImForm({ ...imForm, username: e.target.value })}
+                      placeholder="Unique username"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Password</label>
+                    <input
+                      type="password"
+                      value={imForm.password}
+                      onChange={(e) => setImForm({ ...imForm, password: e.target.value })}
+                      placeholder="Min 6 characters"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Phone</label>
+                    <input
+                      type="text"
+                      value={imForm.phone}
+                      onChange={(e) => setImForm({ ...imForm, phone: e.target.value })}
+                      placeholder="Optional"
+                    />
+                  </div>
+                </div>
+                {imError && <div className="form-error">{imError}</div>}
+                <button className="btn" type="submit" disabled={imSubmitting}>
+                  {imSubmitting ? 'Adding...' : 'Add Manager'}
+                </button>
+              </form>
+            </div>
+
+            {/* List Inventory Managers */}
+            <div className="card">
+              <div className="list-header">
+                <h3>Inventory Managers</h3>
+                <button className="btn btn-secondary" type="button" onClick={async () => { await fetchInventoryManagers(); }}>
+                  Refresh
+                </button>
+              </div>
+              {imLoading ? (
+                <p>Loading...</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {imList.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" style={{ textAlign: 'center' }}>No inventory managers yet</td>
+                        </tr>
+                      ) : (
+                        imList.map((m) => (
+                          <tr key={m._id}>
+                            {imEditingId === m._id ? (
+                              <>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={imEditForm.name}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, name: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={imEditForm.username}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, username: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="email"
+                                    value={imEditForm.email}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, email: e.target.value })}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    className="table-input"
+                                    type="text"
+                                    value={imEditForm.phone || ''}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, phone: e.target.value })}
+                                  />
+                                </td>
+                                <td className="actions-cell">
+                                  <input
+                                    className="table-input"
+                                    type="password"
+                                    placeholder="New password (optional)"
+                                    value={imEditForm.password || ''}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, password: e.target.value })}
+                                  />
+                                  <div className="row-actions">
+                                    <button
+                                      className="btn"
+                                      type="button"
+                                      onClick={async () => {
+                                        // Basic validation
+                                        if (!imEditForm.name.trim() || !imEditForm.email.trim() || !imEditForm.username.trim()) {
+                                          alert('Name, Email, and Username are required');
+                                          return;
+                                        }
+                                        try {
+                                          await axios.put(`http://localhost:5000/admin/inventory-managers/${m._id}`, {
+                                            name: imEditForm.name.trim(),
+                                            email: imEditForm.email.trim().toLowerCase(),
+                                            phone: imEditForm.phone?.trim?.() || '',
+                                            username: imEditForm.username.trim(),
+                                            password: imEditForm.password || undefined,
+                                          });
+                                          setImEditingId(null);
+                                          setImEditForm({ name: '', email: '', phone: '', username: '', password: '' });
+                                          await fetchInventoryManagers();
+                                        } catch (err) {
+                                          alert(err?.response?.data?.message || 'Failed to update');
+                                        }
+                                      }}
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      className="btn btn-secondary"
+                                      type="button"
+                                      onClick={() => {
+                                        setImEditingId(null);
+                                        setImEditForm({ name: '', email: '', phone: '', username: '', password: '' });
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td>{m.name}</td>
+                                <td>{m.username}</td>
+                                <td>{m.email}</td>
+                                <td>{m.phone || '-'}</td>
+                                <td className="actions-cell">
+                                  <div className="row-actions">
+                                    <button
+                                      className="btn btn-secondary"
+                                      type="button"
+                                      onClick={() => {
+                                        setImEditingId(m._id);
+                                        setImEditForm({ name: m.name || '', email: m.email || '', phone: m.phone || '', username: m.username || '', password: '' });
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      className="btn btn-danger"
+                                      type="button"
+                                      onClick={async () => {
+                                        if (!window.confirm('Delete this inventory manager?')) return;
+                                        try {
+                                          await axios.delete(`http://localhost:5000/admin/inventory-managers/${m._id}`);
+                                          await fetchInventoryManagers();
+                                        } catch (err) {
+                                          alert('Failed to delete');
+                                        }
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
