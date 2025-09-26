@@ -80,64 +80,83 @@ function Login() {
             return;
           }
         } catch (fmErr) {
-          // 3) If FM fails with 401, try Teacher login
+          // 3) If FM fails with 401, try Inventory Manager login
           if (fmErr?.response?.status === 401) {
             try {
-              const tResp = await axios.post('http://localhost:5000/admin/teachers/login', {
+              const imResp = await axios.post('http://localhost:5000/admin/inventory-managers/login', {
                 username: formData.username.trim(),
                 password: formData.password
               });
-              if (tResp.data?.success) {
-                localStorage.setItem('teacher', JSON.stringify(tResp.data.teacher));
-                alert('Teacher login successful!');
-                navigate('/teacher/dashboard');
+              if (imResp.data?.success) {
+                localStorage.setItem('inventoryManager', JSON.stringify(imResp.data.manager));
+                alert('Inventory Manager login successful!');
+                navigate('/inventory/dashboard');
                 return;
               }
-            } catch (tErr) {
-              // 4) If Teacher fails with 401, try Staff login
-              if (tErr?.response?.status === 401) {
+            } catch (imErr) {
+              // 4) If Inventory Manager fails with 401, try Teacher login
+              if (imErr?.response?.status === 401) {
                 try {
-                  const sResp = await axios.post('http://localhost:5000/admin/staff/login', {
+                  const tResp = await axios.post('http://localhost:5000/admin/teachers/login', {
                     username: formData.username.trim(),
                     password: formData.password
                   });
-                  if (sResp.data?.success) {
-                    localStorage.setItem('staff', JSON.stringify(sResp.data.staff));
-                    alert('Staff login successful!');
-                    navigate('/staff/dashboard');
+                  if (tResp.data?.success) {
+                    localStorage.setItem('teacher', JSON.stringify(tResp.data.teacher));
+                    alert('Teacher login successful!');
+                    navigate('/teacher/dashboard');
                     return;
                   }
-                } catch (sErr) {
-                  // 5) If Staff fails with 401, try normal user login
-                  if (sErr?.response?.status === 401) {
+                } catch (tErr) {
+                  // 5) If Teacher fails with 401, try Staff login
+                  if (tErr?.response?.status === 401) {
                     try {
-                      const response = await axios.post('http://localhost:5000/users/login', {
-                        username: formData.username.trim().toLowerCase(),
+                      const sResp = await axios.post('http://localhost:5000/admin/staff/login', {
+                        username: formData.username.trim(),
                         password: formData.password
                       });
-
-                      if (response.data.success) {
-                        localStorage.setItem('user', JSON.stringify(response.data.user));
-                        alert('Login successful!');
-                        navigate('/goHome');
+                      if (sResp.data?.success) {
+                        localStorage.setItem('staff', JSON.stringify(sResp.data.staff));
+                        alert('Staff login successful!');
+                        navigate('/staff/dashboard');
                         return;
                       }
-                    } catch (userErr) {
-                      if (userErr.response?.data?.message) {
-                        setErrors({ submit: userErr.response.data.message });
+                    } catch (sErr) {
+                      // 6) If Staff fails with 401, try normal user login
+                      if (sErr?.response?.status === 401) {
+                        try {
+                          const response = await axios.post('http://localhost:5000/users/login', {
+                            username: formData.username.trim().toLowerCase(),
+                            password: formData.password
+                          });
+
+                          if (response.data.success) {
+                            localStorage.setItem('user', JSON.stringify(response.data.user));
+                            alert('Login successful!');
+                            navigate('/goHome');
+                            return;
+                          }
+                        } catch (userErr) {
+                          if (userErr.response?.data?.message) {
+                            setErrors({ submit: userErr.response.data.message });
+                          } else {
+                            setErrors({ submit: 'Login failed. Please try again.' });
+                          }
+                          console.error('User login error:', userErr);
+                        }
                       } else {
                         setErrors({ submit: 'Login failed. Please try again.' });
+                        console.error('Staff login error:', sErr);
                       }
-                      console.error('User login error:', userErr);
                     }
                   } else {
                     setErrors({ submit: 'Login failed. Please try again.' });
-                    console.error('Staff login error:', sErr);
+                    console.error('Teacher login error:', tErr);
                   }
                 }
               } else {
                 setErrors({ submit: 'Login failed. Please try again.' });
-                console.error('Teacher login error:', tErr);
+                console.error('Inventory manager login error:', imErr);
               }
             }
           } else {

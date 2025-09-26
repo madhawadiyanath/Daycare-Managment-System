@@ -20,6 +20,7 @@ import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboa
 import AdminDashboard from './Components/AdminDashboard/AdminDashboard';
 import TeacherDashboard from './Components/TeacherDashboard/TeacherDashboard';
 import StaffDashboard from './Components/StaffDashboard/StaffDashboard';
+import InventoryManagerDashboard from './Components/InventoryManagerDashboard/InventoryManagerDashboard';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
           <Route path="/teacher/dashboard" element={<TeacherDashboard/>}/>
           <Route path="/staff/dashboard" element={<StaffDashboard/>}/>
+          <Route path="/inventory/dashboard" element={<InventoryManagerDashboard/>}/>
         </Routes>
       </React.Fragment>
     </div>
