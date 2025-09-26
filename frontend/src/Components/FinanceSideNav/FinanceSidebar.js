@@ -23,10 +23,10 @@ function FinanceSidebar() {
         </button>
       </div>
       <div className="finance-sidebar__profile">
-        <img className="finance-sidebar__avatar" src="https://i.pravatar.cc/80?img=13" alt="Admin" />
+        <img className="finance-sidebar__avatar" src="https://avatars.githubusercontent.com/u/181889593?v=4" alt="Admin" />
         <div className="finance-sidebar__user">
-          <span className="finance-sidebar__name">Admin User</span>
-          <span className="finance-sidebar__email">admin@example.com</span>
+          <span className="finance-sidebar__name">Finance Admin</span>
+          <span className="finance-sidebar__email">madhawadiyanath@gmail.com</span>
         </div>
       </div>
       <nav>
@@ -38,9 +38,9 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
-            <Link to="/add-expenses" className={`finance-sidebar__link ${isActive('/add-expenses') ? 'is-active' : ''}`}>
+            <Link to="/expense-details" className={`finance-sidebar__link ${isActive('/expense-details') ? 'is-active' : ''}`}>
               <span className="finance-sidebar__icon">💸</span>
-              <span className="finance-sidebar__label">Add Expenses</span>
+              <span className="finance-sidebar__label">Expenses Details</span>
             </Link>
           </li>
           <li>
@@ -50,15 +50,15 @@ function FinanceSidebar() {
             </Link>
           </li>
           <li>
-            <Link to="/profit-loss" className={`finance-sidebar__link ${isActive('/profit-loss') ? 'is-active' : ''}`}>
-              <span className="finance-sidebar__icon">📊</span>
-              <span className="finance-sidebar__label">Profit & Loss</span>
+            <Link to="/incomes-expenses" className={`finance-sidebar__link ${isActive('/incomes-expenses') ? 'is-active' : ''}`}>
+              <span className="finance-sidebar__icon">📋</span>
+              <span className="finance-sidebar__label">Incomes and Expenses</span>
             </Link>
           </li>
           <li>
-            <Link to="/SalaryDetails" className={`finance-sidebar__link ${isActive('/add-salary') ? 'is-active' : ''}`}>
-              <span className="finance-sidebar__icon">➕</span>
-              <span className="finance-sidebar__label">Add Salary</span>
+            <Link to="/profit-loss" className={`finance-sidebar__link ${isActive('/profit-loss') ? 'is-active' : ''}`}>
+              <span className="finance-sidebar__icon">📊</span>
+              <span className="finance-sidebar__label">Profit & Loss</span>
             </Link>
           </li>
           <li>
