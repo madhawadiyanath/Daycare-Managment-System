@@ -6,6 +6,7 @@ import axios from 'axios';
 function AddBill() {
   // State for form inputs
   const [formData, setFormData] = useState({
+    userId: '',
     type: 'expense',
     amount: '',
     category: '',
@@ -35,12 +36,17 @@ function AddBill() {
     setLoading(true);
     
     try {
-      // Get user ID from localStorage or use a default (you should implement proper auth)
-      const userId = localStorage.getItem('userId') || '64d7a8c9e6b3f1a9f0b4c7d2'; // Replace with actual user ID
+      // Validate that userId is provided
+      if (!formData.userId.trim()) {
+        setMessage('Please enter a valid User ID');
+        setIsError(true);
+        setLoading(false);
+        return;
+      }
       
       const transactionData = {
         ...formData,
-        userId: userId,
+        userId: formData.userId.trim(),
         amount: parseFloat(formData.amount)
       };
 
@@ -53,6 +59,7 @@ function AddBill() {
         
         // Reset form
         setFormData({
+          userId: '',
           type: 'expense',
           amount: '',
           category: '',
@@ -111,8 +118,10 @@ function AddBill() {
   };
 
   return (
+    
     <div className="add-bill-container">
       <Nav/>
+      <br></br><br></br><br></br><br></br><br></br><br></br>
       <h2>Add Financial Transaction</h2>
       
       {message && (
@@ -124,6 +133,19 @@ function AddBill() {
       <div className="transaction-form-container">
         <form onSubmit={handleSubmit} className="transaction-form">
           <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="userId">User ID</label>
+              <input
+                type="text"
+                id="userId"
+                name="userId"
+                value={formData.userId}
+                onChange={handleInputChange}
+                placeholder="Enter any user ID (e.g., user123, admin, 64d7a8c9e6b3f1a9f0b4c7d2)"
+                required
+              />
+            </div>
+            
             <div className="form-group">
               <label htmlFor="type">Transaction Type</label>
               <select

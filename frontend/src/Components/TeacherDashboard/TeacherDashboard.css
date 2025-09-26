@@ -1,0 +1,9 @@
+.t-dashboard { padding: 24px; }
+.t-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.t-header .subtitle { margin: 4px 0 0 0; color: #666; font-size: 14px; }
+.t-profile { display: flex; gap: 10px; align-items: center; color: #444; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.btn { display: inline-block; padding: 10px 14px; border-radius: 8px; background: #0a58ca; color: #fff; text-decoration: none; transition: background .15s ease-in-out; }
+.btn:hover { background: #0848a7; }

@@ -29,7 +29,7 @@ function Nav() {
                     <a href="#" class="nav-link">Features</a>
                     <ul class="dropdown-menu">
                         <li class="dropdown-item">
-                            <a href="#" class="dropdown-link">Parent Communication</a>
+                            <Link to="/ChildcareDashboard" class="dropdown-link">Child Details</Link>
                         </li>
                         <li class="dropdown-item">
                             <a href="#" class="dropdown-link">Attendance Tracking</a>
@@ -38,15 +38,15 @@ function Nav() {
                             <a href="#" class="dropdown-link">Learning & Assessment</a>
                         </li>
                         <li class="dropdown-item">
-                        <Link to="/mainfina" class="dropdown-link" >Billing & Finance</Link>
+                            <Link to="/mainfina" class="dropdown-link" >Billing & Finance</Link>
                         </li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">About</a>
+                    <Link to="/AboutUs" class="nav-link">About</Link>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link login-btn">Login</a>
+                    <Link to="/login" class="nav-link login-btn">Login</Link>
                 </li>
                 <li class="nav-item">
                     <Link to="/JoinUs" class="nav-link join-btn" >Join Us</Link>
