@@ -6,9 +6,20 @@ import Home from "./Components/Home/Home";
 import AddUser from "./Components/AddBill/AddBill";
 import Finace from "./Components/Finance/Finance";
 import BillDetails from "./Components/BillDetails/BillDetails";
+import SalaryDetails from "./Components/SalaryDetails/SalaryDetails";
+import IncomeDetails from "./Components/IncomeDetails/IncomeDetails";
+import ExpenseDetails from "./Components/ExpenseDetails/ExpenseDetails";
+import ProfitLoss from "./Components/ProfitLoss/ProfitLoss";
+import IncomesAndExpenses from "./Components/IncomesAndExpenses/IncomesAndExpenses";
+import Payment from "./Components/Payment/Payment";
+import PaymentReceipt from "./Components/PaymentReceipt/PaymentReceipt";
 import JoinUs from './Components/JoinUs/JoinUs';
+import About from './Components/About/About';
 import Login from './Components/Login/Login';
 import ChildcareDashboard from './Components/ChildcareDashboard/ChildcareDashboard';
+import AdminDashboard from './Components/AdminDashboard/AdminDashboard';
+import TeacherDashboard from './Components/TeacherDashboard/TeacherDashboard';
+
 function App() {
   return (
     <div className="App">
@@ -22,8 +33,18 @@ function App() {
           <Route path="/ChildcareDashboard" element={<ChildcareDashboard/>}/>
           <Route path="/AddBill" element={<AddUser/>}/>
           <Route path="/BillDetails" element={<BillDetails/>}/>
+          <Route path="/SalaryDetails" element={<SalaryDetails/>}/>
+          <Route path="/income-details" element={<IncomeDetails/>}/>
+          <Route path="/expense-details" element={<ExpenseDetails/>}/>
+          <Route path="/profit-loss" element={<ProfitLoss/>}/>
+          <Route path="/incomes-expenses" element={<IncomesAndExpenses/>}/>
+          <Route path="/payment" element={<Payment/>}/>
+          <Route path="/payment-receipt" element={<PaymentReceipt/>}/>
           <Route path="/JoinUs" element={<JoinUs/>}/>
+          <Route path="/AboutUs" element={<About/>}/>
           <Route path="/login" element={<Login/>}/>
+          <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
+          <Route path="/teacher/dashboard" element={<TeacherDashboard/>}/>
         </Routes>
       </React.Fragment>
     </div>
