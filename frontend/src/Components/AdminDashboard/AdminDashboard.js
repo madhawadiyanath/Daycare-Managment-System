@@ -30,6 +30,8 @@ function AdminDashboard() {
   const [sLoading, setSLoading] = useState(false);
   const [sError, setSError] = useState('');
   const [sForm, setSForm] = useState({ name: '', email: '', phone: '', role: '', username: '', password: '' });
+  const [sEditingId, setSEditingId] = useState(null);
+  const [sEditForm, setSEditForm] = useState({ name: '', email: '', phone: '', role: '', username: '', password: '' });
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -44,6 +46,20 @@ function AdminDashboard() {
     };
     fetchDashboard();
   }, []);
+
+  // Fetch staff
+  async function fetchStaff() {
+    try {
+      setSLoading(true);
+      setSError('');
+      const res = await axios.get('http://localhost:5000/admin/staff');
+      setSList(res.data?.data || []);
+    } catch (err) {
+      setSError(err?.response?.data?.message || 'Failed to load staff');
+    } finally {
+      setSLoading(false);
+    }
+  }
 
   // Fetch finance managers
   const fetchManagers = async () => {
@@ -80,6 +96,9 @@ function AdminDashboard() {
     }
     if (activeTab === 'teacher') {
       fetchTeachers();
+    }
+    if (activeTab === 'staff') {
+      fetchStaff();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -701,9 +720,206 @@ function AdminDashboard() {
 
         {activeTab === 'staff' && (
           <div className="panel">
+            {/* Add Staff */}
             <div className="card">
-              <h3>Staff Management</h3>
-              <p>Coming soon: manage staff records, attendance, and payroll.</p>
+              <h3>Add Staff</h3>
+              <form
+                className="fm-form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setSError('');
+                  if (!sForm.name.trim() || !sForm.email.trim() || !sForm.username.trim() || !sForm.password) {
+                    setSError('Name, Email, Username and Password are required');
+                    return;
+                  }
+                  try {
+                    const res = await axios.post('http://localhost:5000/admin/staff', {
+                      name: sForm.name.trim(),
+                      email: sForm.email.trim().toLowerCase(),
+                      phone: sForm.phone.trim(),
+                      role: sForm.role.trim(),
+                      username: sForm.username.trim(),
+                      password: sForm.password,
+                    });
+                    if (res.data?.success) {
+                      setSForm({ name: '', email: '', phone: '', role: '', username: '', password: '' });
+                      await fetchStaff();
+                    } else {
+                      setSError(res.data?.message || 'Failed to create');
+                    }
+                  } catch (err) {
+                    setSError(err?.response?.data?.message || 'Failed to create');
+                  }
+                }}
+              >
+                <div className="row">
+                  <div className="col">
+                    <label>Name</label>
+                    <input
+                      type="text"
+                      value={sForm.name}
+                      onChange={(e) => setSForm({ ...sForm, name: e.target.value })}
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={sForm.email}
+                      onChange={(e) => setSForm({ ...sForm, email: e.target.value })}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Username</label>
+                    <input
+                      type="text"
+                      value={sForm.username}
+                      onChange={(e) => setSForm({ ...sForm, username: e.target.value })}
+                      placeholder="Unique username"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Password</label>
+                    <input
+                      type="password"
+                      value={sForm.password}
+                      onChange={(e) => setSForm({ ...sForm, password: e.target.value })}
+                      placeholder="Min 6 characters"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Phone</label>
+                    <input
+                      type="text"
+                      value={sForm.phone}
+                      onChange={(e) => setSForm({ ...sForm, phone: e.target.value })}
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div className="col">
+                    <label>Role</label>
+                    <input
+                      type="text"
+                      value={sForm.role}
+                      onChange={(e) => setSForm({ ...sForm, role: e.target.value })}
+                      placeholder="e.g., Assistant, Cleaner"
+                    />
+                  </div>
+                </div>
+                {sError && <div className="form-error">{sError}</div>}
+                <button className="btn" type="submit">Add Staff</button>
+              </form>
+            </div>
+
+            {/* List Staff */}
+            <div className="card">
+              <div className="list-header">
+                <h3>Staff</h3>
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  onClick={async () => { await fetchStaff(); }}
+                >
+                  Refresh
+                </button>
+              </div>
+              {sLoading ? (
+                <p>Loading...</p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sList.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" style={{ textAlign: 'center' }}>No staff yet</td>
+                        </tr>
+                      ) : (
+                        sList.map((s) => (
+                          <tr key={s._id}>
+                            {sEditingId === s._id ? (
+                              <>
+                                <td>
+                                  <input className="table-input" type="text" value={sEditForm.name} onChange={(e) => setSEditForm({ ...sEditForm, name: e.target.value })} />
+                                </td>
+                                <td>
+                                  <input className="table-input" type="text" value={sEditForm.username} onChange={(e) => setSEditForm({ ...sEditForm, username: e.target.value })} />
+                                </td>
+                                <td>
+                                  <input className="table-input" type="email" value={sEditForm.email} onChange={(e) => setSEditForm({ ...sEditForm, email: e.target.value })} />
+                                </td>
+                                <td>
+                                  <input className="table-input" type="text" value={sEditForm.phone || ''} onChange={(e) => setSEditForm({ ...sEditForm, phone: e.target.value })} />
+                                </td>
+                                <td>
+                                  <input className="table-input" type="text" value={sEditForm.role || ''} onChange={(e) => setSEditForm({ ...sEditForm, role: e.target.value })} />
+                                </td>
+                                <td className="actions-cell">
+                                  <input className="table-input" type="password" placeholder="New password (optional)" value={sEditForm.password || ''} onChange={(e) => setSEditForm({ ...sEditForm, password: e.target.value })} />
+                                  <div className="row-actions">
+                                    <button className="btn" type="button" onClick={async () => {
+                                      if (!sEditForm.name.trim() || !sEditForm.email.trim() || !sEditForm.username.trim()) { alert('Name, Email, and Username are required'); return; }
+                                      try {
+                                        await axios.put(`http://localhost:5000/admin/staff/${s._id}`, {
+                                          name: sEditForm.name.trim(),
+                                          email: sEditForm.email.trim().toLowerCase(),
+                                          phone: sEditForm.phone?.trim?.() || '',
+                                          role: sEditForm.role?.trim?.() || '',
+                                          username: sEditForm.username.trim(),
+                                          password: sEditForm.password || undefined,
+                                        });
+                                        setSEditingId(null);
+                                        setSEditForm({ name: '', email: '', phone: '', role: '', username: '', password: '' });
+                                        await fetchStaff();
+                                      } catch (err) {
+                                        alert(err?.response?.data?.message || 'Failed to update');
+                                      }
+                                    }}>Save</button>
+                                    <button className="btn btn-secondary" type="button" onClick={() => { setSEditingId(null); setSEditForm({ name: '', email: '', phone: '', role: '', username: '', password: '' }); }}>Cancel</button>
+                                  </div>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td>{s.name}</td>
+                                <td>{s.username}</td>
+                                <td>{s.email}</td>
+                                <td>{s.phone || '-'}</td>
+                                <td>{s.role || '-'}</td>
+                                <td className="actions-cell">
+                                  <div className="row-actions">
+                                    <button className="btn btn-secondary" type="button" onClick={() => { setSEditingId(s._id); setSEditForm({ name: s.name || '', email: s.email || '', phone: s.phone || '', role: s.role || '', username: s.username || '', password: '' }); }}>Edit</button>
+                                    <button className="btn btn-danger" type="button" onClick={async () => {
+                                      if (!window.confirm('Delete this staff member?')) return;
+                                      try {
+                                        await axios.delete(`http://localhost:5000/admin/staff/${s._id}`);
+                                        await fetchStaff();
+                                      } catch (err) {
+                                        alert('Failed to delete');
+                                      }
+                                    }}>Delete</button>
+                                  </div>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
