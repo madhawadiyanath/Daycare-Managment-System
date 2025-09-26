@@ -4,6 +4,9 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoute");
 const transactionRoutes = require("./routes/transactionRoute");
 const salaryRoutes = require("./routes/salaryRoute");
+const incomeRoutes = require("./routes/IncomeRoute");
+const expenseRoutes = require("./routes/ExpenseRoute");
+const paymentRoutes = require("./routes/paymentRoutes");
 const adminRoutes = require("./routes/adminRoute");
 const financeManagerRoutes = require("./routes/financeManagerRoute");
 const teacherRoutes = require("./routes/teacherRoute");
@@ -20,6 +23,9 @@ app.use(express.json());
 app.use("/users", userRoutes);
 app.use("/transactions", transactionRoutes);
 app.use("/salaries", salaryRoutes);
+app.use("/incomes", incomeRoutes);
+app.use("/expenses", expenseRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin/finance-managers", financeManagerRoutes);
 app.use("/admin/teachers", teacherRoutes);
@@ -42,7 +48,7 @@ app.use((error, req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://minindu:SSm92Y3DC1jx5MHB@cluster0.qnygyj4.mongodb.net/")
+mongoose.connect("mongodb+srv://admin:5YdcKV1qUqM18Gkv@cluster0.8kk63n7.mongodb.net/finance_db?retryWrites=true&w=majority")
   .then(() => {
     console.log("Connected to MongoDB");
     
