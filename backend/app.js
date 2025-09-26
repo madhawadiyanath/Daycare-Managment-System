@@ -10,6 +10,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const adminRoutes = require("./routes/adminRoute");
 const financeManagerRoutes = require("./routes/financeManagerRoute");
 const teacherRoutes = require("./routes/teacherRoute");
+const staffRoutes = require("./routes/staffRoute");
 const { createDefaultAdmin } = require("./models/AdminModel");
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/admin", adminRoutes);
 app.use("/admin/finance-managers", financeManagerRoutes);
 app.use("/admin/teachers", teacherRoutes);
+app.use("/admin/staff", staffRoutes);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");
