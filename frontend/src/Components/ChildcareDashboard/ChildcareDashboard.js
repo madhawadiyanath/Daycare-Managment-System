@@ -1,12 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./ChildcareDashboard.css";
 import Nav from "../Nav/Nav";
 import CreateChild from "./CreateChild";
 import ViewChildren from "./ViewChildren";
 // Removed UpdateChild and DeleteChild sections
+import { useNavigate } from "react-router-dom";
 
 export default function ChildcareDashboard() {
   const [activeSection, setActiveSection] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Require parent login to access ChildcareDashboard
+    const parentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!parentUser) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   return (
     <div>
