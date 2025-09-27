@@ -27,6 +27,7 @@ function SalaryDetails() {
     loanDeductions: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Fetch all salaries
   const fetchSalaries = async () => {
@@ -77,6 +78,17 @@ function SalaryDetails() {
     if (name === 'empName') {
       // Only allow letters and spaces, remove everything else
       const filteredValue = value.replace(/[^A-Za-z\s]/g, '');
+      setFormData({
+        ...formData,
+        [name]: filteredValue
+      });
+      return;
+    }
+    
+    // Special validation for employee ID - only allow numbers
+    if (name === 'empID') {
+      // Only allow numbers, remove everything else
+      const filteredValue = value.replace(/[^0-9]/g, '');
       setFormData({
         ...formData,
         [name]: filteredValue
@@ -159,6 +171,16 @@ function SalaryDetails() {
       });
       setShowForm(false);
       setError(''); // Clear any previous errors
+      
+      // Show success message
+      const successMsg = editingSalary ? 'Salary updated successfully!' : 'Salary added successfully!';
+      setSuccessMessage(successMsg);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
       fetchSalaries();
     } catch (err) {
       console.error('Full error object:', err);
@@ -169,6 +191,10 @@ function SalaryDetails() {
 
   // Handle edit
   const handleEdit = (salary) => {
+    // Clear any existing messages
+    setError('');
+    setSuccessMessage('');
+    
     setFormData({
       empID: salary.empID,
       empName: salary.empName,
@@ -180,6 +206,9 @@ function SalaryDetails() {
     });
     setEditingSalary(salary);
     setShowForm(true);
+    
+    // Show confirmation alert
+    alert(`Editing salary record for ${salary.empName} (ID: ${salary.empID})`);
   };
 
   // Handle delete
@@ -187,6 +216,13 @@ function SalaryDetails() {
     if (window.confirm('Are you sure you want to delete this salary record?')) {
       try {
         await axios.delete(`${SALARY_URL}/${salaryId}`);
+        setSuccessMessage('Salary record deleted successfully!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 3000);
+        
         fetchSalaries();
       } catch (err) {
         setError('Failed to delete salary record');
@@ -199,6 +235,8 @@ function SalaryDetails() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingSalary(null);
+    setError(''); // Clear any errors
+    setSuccessMessage(''); // Clear any success messages
     setFormData({
       empID: '',
       empName: '',
@@ -448,6 +486,10 @@ function SalaryDetails() {
         {error && (
           <div className="error-message">{error}</div>
         )}
+        
+        {successMessage && (
+          <div className="success-message">{successMessage}</div>
+        )}
 
         <div className="salary-actions">
           <button 
@@ -471,6 +513,14 @@ function SalaryDetails() {
                     name="empID"
                     value={formData.empID}
                     onChange={handleInputChange}
+                    onKeyPress={(e) => {
+                      // Prevent typing non-numeric characters
+                      const char = String.fromCharCode(e.which);
+                      if (!/[0-9]/.test(char)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    placeholder="Enter employee ID (numbers only)"
                     required
                   />
                 </div>

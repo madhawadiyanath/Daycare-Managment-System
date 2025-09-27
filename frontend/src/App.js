@@ -21,6 +21,7 @@ import AdminDashboard from './Components/AdminDashboard/AdminDashboard';
 import TeacherDashboard from './Components/TeacherDashboard/TeacherDashboard';
 import StaffDashboard from './Components/StaffDashboard/StaffDashboard';
 import InventoryManagerDashboard from './Components/InventoryManagerDashboard/InventoryManagerDashboard';
+import ParentProfile from './Components/ParentProfile/ParentProfile';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="/teacher/dashboard" element={<TeacherDashboard/>}/>
           <Route path="/staff/dashboard" element={<StaffDashboard/>}/>
           <Route path="/inventory/dashboard" element={<InventoryManagerDashboard/>}/>
+          <Route path="/parent/profile" element={<ParentProfile/>}/>
         </Routes>
       </React.Fragment>
     </div>
