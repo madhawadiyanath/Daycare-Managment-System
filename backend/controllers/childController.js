@@ -45,4 +45,18 @@ const updateChildByChildId = async (req, res) => {
   }
 };
 
-module.exports = { getChildByChildId, updateChildByChildId };
+// GET /children/by-parent?parent=Name
+const listChildrenByParent = async (req, res) => {
+  try {
+    const parent = String(req.query.parent || '').trim();
+    if (!parent) {
+      return res.status(400).json({ success: false, message: 'parent query is required' });
+    }
+    const items = await Child.find({ parent }).sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, data: items });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getChildByChildId, updateChildByChildId, listChildrenByParent };

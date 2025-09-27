@@ -84,3 +84,17 @@ module.exports = {
   approveRequest,
   rejectRequest,
 };
+
+// GET /child-requests/by-parent?parent=Name
+module.exports.listPendingByParent = async (req, res) => {
+  try {
+    const parent = String(req.query.parent || '').trim();
+    if (!parent) {
+      return res.status(400).json({ success: false, message: 'parent query is required' });
+    }
+    const list = await PendingChildRequest.find({ status: 'pending', parent }).sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, data: list });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
