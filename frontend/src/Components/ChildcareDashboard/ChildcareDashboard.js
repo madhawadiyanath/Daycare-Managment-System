@@ -3,8 +3,7 @@ import "./ChildcareDashboard.css";
 import Nav from "../Nav/Nav";
 import CreateChild from "./CreateChild";
 import ViewChildren from "./ViewChildren";
-import UpdateChild from "./UpdateChild";
-import DeleteChild from "./DeleteChild";
+// Removed UpdateChild and DeleteChild sections
 
 export default function ChildcareDashboard() {
   const [activeSection, setActiveSection] = useState("");
@@ -18,8 +17,6 @@ export default function ChildcareDashboard() {
         <div className="button-container">
           <button onClick={() => setActiveSection("create")}>➕ Create Child Record</button>
           <button onClick={() => setActiveSection("view")}>📖 View Records</button>
-          <button onClick={() => setActiveSection("update")}>✏️ Update Progress</button>
-          <button onClick={() => setActiveSection("delete")}>🗑️ Delete Records</button>
         </div>
 
         <div className="section-container">
@@ -31,16 +28,6 @@ export default function ChildcareDashboard() {
           {activeSection === "view" && (
             <div className="section fade-in">
               <ViewChildren/>
-            </div>
-          )}
-          {activeSection === "update" && (
-            <div className="section fade-in">
-              <UpdateChild/>
-            </div>
-          )}
-          {activeSection === "delete" && (
-            <div className="section fade-in">
-              <DeleteChild/>
             </div>
           )}
         </div>
