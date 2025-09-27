@@ -12,8 +12,6 @@ const financeManagerRoutes = require("./routes/financeManagerRoute");
 const teacherRoutes = require("./routes/teacherRoute");
 const staffRoutes = require("./routes/staffRoute");
 const inventoryManagerRoutes = require("./routes/inventoryManagerRoute");
-const childRequestRoutes = require("./routes/childRequestRoute");
-const childRoutes = require("./routes/childRoute");
 
 const { createDefaultAdmin } = require("./models/AdminModel");
 
@@ -35,8 +33,6 @@ app.use("/admin/finance-managers", financeManagerRoutes);
 app.use("/admin/teachers", teacherRoutes);
 app.use("/admin/staff", staffRoutes);
 app.use("/admin/inventory-managers", inventoryManagerRoutes);
-app.use("/child-requests", childRequestRoutes);
-app.use("/children", childRoutes);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");
@@ -55,7 +51,7 @@ app.use((error, req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://minindu:SSm92Y3DC1jx5MHB@cluster0.qnygyj4.mongodb.net/")
+mongoose.connect("mongodb+srv://admin:5YdcKV1qUqM18Gkv@cluster0.8kk63n7.mongodb.net/finance_db?retryWrites=true&w=majority")
   .then(() => {
     console.log("Connected to MongoDB");
     
