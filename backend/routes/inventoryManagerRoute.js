@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { createInventoryManager, getInventoryManagers, updateInventoryManager, deleteInventoryManager, loginInventoryManager, createInventoryItem, getInventoryItems, updateInventoryItem, deleteInventoryItem, issueInventoryItem } = require('../controllers/inventoryManagerController');
+
+router.post('/', createInventoryManager);
 // Issue inventory item
 router.post('/issue', issueInventoryItem);
 // Delete inventory item
