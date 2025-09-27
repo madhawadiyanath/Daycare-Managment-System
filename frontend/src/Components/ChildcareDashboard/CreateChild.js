@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import "./CreateChild.css";
 
 export default function CreateChild() {
@@ -15,26 +16,46 @@ export default function CreateChild() {
     setChildData({ ...childData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("New Child Data:", childData);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-    // 🚀 Later you can send this data to backend (MERN)
-    // axios.post("/api/children", childData)
-    alert("✅ Child record created successfully!");
-    setChildData({
-      name: "",
-      age: "",
-      gender: "",
-      parent: "",
-      healthNotes: ""
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccessMsg("");
+    if (!childData.name.trim() || !childData.age || !childData.gender || !childData.parent.trim()) {
+      setError("Name, age, gender and parent are required");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const res = await axios.post("http://localhost:5000/child-requests", {
+        name: childData.name.trim(),
+        age: String(childData.age).trim(),
+        gender: childData.gender,
+        parent: childData.parent.trim(),
+        healthNotes: childData.healthNotes?.trim?.() || "",
+      });
+      if (res.data?.success) {
+        setSuccessMsg("Request submitted! A staff member will review and approve.");
+        setChildData({ name: "", age: "", gender: "", parent: "", healthNotes: "" });
+      } else {
+        setError(res.data?.message || "Failed to submit request");
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to submit request");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="create-container">
 
       <form className="create-form" onSubmit={handleSubmit}>
+        {error && <div className="form-error">{error}</div>}
+        {successMsg && <div className="form-success">{successMsg}</div>}
         <label>Child Name</label>
         <input
           type="text"
@@ -81,8 +102,8 @@ export default function CreateChild() {
           placeholder="Allergies, medical notes..."
         ></textarea>
 
-        <button type="submit" className="submit-btn">
-          Save Record
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? "Submitting..." : "Submit Request"}
         </button>
       </form>
     </div>
