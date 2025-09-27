@@ -25,6 +25,7 @@ function ExpenseDetails() {
     description: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const categories = [
     'Staff Salaries',
@@ -186,6 +187,16 @@ function ExpenseDetails() {
       });
       setShowForm(false);
       setError(''); // Clear any previous errors
+      
+      // Show success message
+      const successMsg = editingExpense ? 'Expense updated successfully!' : 'Expense added successfully!';
+      setSuccessMessage(successMsg);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
       fetchExpenses();
     } catch (err) {
       console.error('Full error object:', err);
@@ -196,6 +207,10 @@ function ExpenseDetails() {
 
   // Handle edit
   const handleEdit = (expense) => {
+    // Clear any existing messages
+    setError('');
+    setSuccessMessage('');
+    
     setFormData({
       title: expense.title,
       amount: expense.amount.toString(),
@@ -205,6 +220,9 @@ function ExpenseDetails() {
     });
     setEditingExpense(expense);
     setShowForm(true);
+    
+    // Show confirmation alert
+    alert(`Editing expense record: ${expense.title} (Rs ${expense.amount})`);
   };
 
   // Handle delete
@@ -212,6 +230,13 @@ function ExpenseDetails() {
     if (window.confirm('Are you sure you want to delete this expense record?')) {
       try {
         await axios.delete(`${EXPENSE_URL}/${expenseId}`);
+        setSuccessMessage('Expense record deleted successfully!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 3000);
+        
         fetchExpenses();
       } catch (err) {
         setError('Failed to delete expense record');
@@ -224,6 +249,8 @@ function ExpenseDetails() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingExpense(null);
+    setError(''); // Clear any errors
+    setSuccessMessage(''); // Clear any success messages
     setFormData({
       title: '',
       amount: '',
@@ -456,6 +483,10 @@ function ExpenseDetails() {
 
         {error && (
           <div className="error-message">{error}</div>
+        )}
+        
+        {successMessage && (
+          <div className="success-message">{successMessage}</div>
         )}
 
         <div className="expense-actions">
