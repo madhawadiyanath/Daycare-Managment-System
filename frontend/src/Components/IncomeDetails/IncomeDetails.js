@@ -25,6 +25,7 @@ function IncomeDetails() {
     description: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const categories = [
     'Monthly Tuition',
@@ -175,6 +176,16 @@ function IncomeDetails() {
       });
       setShowForm(false);
       setError(''); // Clear any previous errors
+      
+      // Show success message
+      const successMsg = editingIncome ? 'Income updated successfully!' : 'Income added successfully!';
+      setSuccessMessage(successMsg);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
       fetchIncomes();
     } catch (err) {
       console.error('Full error object:', err);
@@ -185,6 +196,10 @@ function IncomeDetails() {
 
   // Handle edit
   const handleEdit = (income) => {
+    // Clear any existing messages
+    setError('');
+    setSuccessMessage('');
+    
     setFormData({
       title: income.title,
       amount: income.amount.toString(),
@@ -194,6 +209,9 @@ function IncomeDetails() {
     });
     setEditingIncome(income);
     setShowForm(true);
+    
+    // Show confirmation alert
+    alert(`Editing income record: ${income.title} (Rs ${income.amount})`);
   };
 
   // Handle delete
@@ -201,6 +219,13 @@ function IncomeDetails() {
     if (window.confirm('Are you sure you want to delete this income record?')) {
       try {
         await axios.delete(`${INCOME_URL}/${incomeId}`);
+        setSuccessMessage('Income record deleted successfully!');
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage('');
+        }, 3000);
+        
         fetchIncomes();
       } catch (err) {
         setError('Failed to delete income record');
@@ -213,6 +238,8 @@ function IncomeDetails() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingIncome(null);
+    setError(''); // Clear any errors
+    setSuccessMessage(''); // Clear any success messages
     setFormData({
       title: '',
       amount: '',
@@ -445,6 +472,10 @@ function IncomeDetails() {
 
         {error && (
           <div className="error-message">{error}</div>
+        )}
+        
+        {successMessage && (
+          <div className="success-message">{successMessage}</div>
         )}
 
         <div className="income-actions">
