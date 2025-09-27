@@ -107,6 +107,16 @@ function ExpenseDetails() {
       return;
     }
     
+    // Special validation for date - only allow today's date
+    if (name === 'date') {
+      const today = new Date().toISOString().split('T')[0];
+      if (value !== today) {
+        setError('You can only select today\'s date');
+        return; // Don't update if not today
+      }
+      setError(''); // Clear error if valid
+    }
+    
     // Prevent negative values for amount field
     if (name === 'amount') {
       if (value < 0) {
@@ -529,6 +539,8 @@ function ExpenseDetails() {
                     name="date"
                     value={formData.date}
                     onChange={handleInputChange}
+                    min={new Date().toISOString().split('T')[0]}
+                    max={new Date().toISOString().split('T')[0]}
                     required
                   />
                 </div>

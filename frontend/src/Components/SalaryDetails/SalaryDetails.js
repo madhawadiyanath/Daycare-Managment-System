@@ -84,6 +84,17 @@ function SalaryDetails() {
       return;
     }
     
+    // Special validation for employee ID - only allow numbers
+    if (name === 'empID') {
+      // Only allow numbers, remove everything else
+      const filteredValue = value.replace(/[^0-9]/g, '');
+      setFormData({
+        ...formData,
+        [name]: filteredValue
+      });
+      return;
+    }
+    
     // Prevent negative values for salary fields
     if (['basicSalary', 'allowances', 'loanDeductions'].includes(name)) {
       if (value < 0) {
@@ -471,6 +482,14 @@ function SalaryDetails() {
                     name="empID"
                     value={formData.empID}
                     onChange={handleInputChange}
+                    onKeyPress={(e) => {
+                      // Prevent typing non-numeric characters
+                      const char = String.fromCharCode(e.which);
+                      if (!/[0-9]/.test(char)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    placeholder="Enter employee ID (numbers only)"
                     required
                   />
                 </div>
