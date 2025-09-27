@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function InventoryNewItemAdd({ open, onClose, onSuccess, editItem }) {
+function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames = [] }) {
   const isEdit = !!editItem;
   const [form, setForm] = useState({
     name: '',
@@ -93,14 +93,38 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem }) {
               <input name="stock" type="number" min="0" value={form.stock} onChange={handleChange} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
             </label>
           </div>
-          <div style={{ marginBottom: 16 }}>
-            <label>Expiry Date<br/>
-              <input name="expiry" type="date" value={form.expiry} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 4 }} />
-            </label>
-          </div>
+          {form.category.trim().toLowerCase() === 'food' && (
+            <div style={{ marginBottom: 16 }}>
+              <label>Expiry Date<br/>
+                <input name="expiry" type="date" value={form.expiry} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              </label>
+            </div>
+          )}
           <div style={{ marginBottom: 16 }}>
             <label>Supplier Name<br/>
-              <input name="supplier" value={form.supplier} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              <select
+                name="supplier"
+                value={form.supplier}
+                onChange={handleChange}
+                style={{ width: '100%', padding: 8, marginTop: 4 }}
+                required
+              >
+                <option value="">Select Supplier</option>
+                {supplierNames.map((name, idx) => (
+                  <option key={idx} value={name}>{name}</option>
+                ))}
+                <option value="__manual__">Other (Enter manually)</option>
+              </select>
+              {form.supplier === "__manual__" && (
+                <input
+                  name="supplier"
+                  placeholder="Enter supplier name"
+                  value={form.supplierManual || ''}
+                  onChange={e => setForm({ ...form, supplier: e.target.value, supplierManual: e.target.value })}
+                  style={{ width: '100%', padding: 8, marginTop: 8 }}
+                  required
+                />
+              )}
             </label>
           </div>
           {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
