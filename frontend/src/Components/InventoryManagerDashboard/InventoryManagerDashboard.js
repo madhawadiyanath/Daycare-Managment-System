@@ -267,13 +267,25 @@ function InventoryManagerDashboard() {
         </div>
       </div>
       {/* Main content, shifted right for sidebar */}
-      <div style={{ marginLeft: 260, flex: 1, background: '#7d74c0', minHeight: '100vh', padding: 0 }}>
+  <div style={{ marginLeft: 260, flex: 1, background: '#fff', minHeight: '100vh', padding: 0 }}>
         <Nav />
         {/* Header */}
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '150px 0 0 0' }}>
-          <div style={{ background: '#8d87d6', borderRadius: 20, width: 750, height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: 70 }}>
-            <h1 style={{ fontWeight: 700, fontSize: 32, color: '#fff', margin: 0 }}>Inventory Management</h1>
-            <div style={{ color: '#fff', fontSize: 14, fontWeight: 400 }}>Real time stock overview</div>
+          <div style={{
+            background: '#fff',
+            borderRadius: 20,
+            width: 750,
+            height: 120,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 70,
+            boxShadow: '0 8px 32px rgba(52,9,147,0.18), 0 2px 8px rgba(52,9,147,0.10)',
+            border: '1.5px solid #e0e0e0'
+          }}>
+            <h1 style={{ fontWeight: 700, fontSize: 32, color: '#5964ffff', margin: 0 }}>Inventory Management</h1>
+            <div style={{ color: '#5964ffff', fontSize: 14, fontWeight: 400 }}>Real time stock overview</div>
           </div>
         </div>
 
@@ -284,7 +296,7 @@ function InventoryManagerDashboard() {
             <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8, marginTop: 32 }}>Total Products</div>
             <div style={{ fontWeight: 700, fontSize: 32 }}>{totalProducts}</div>
           </div>
-          <div style={{ background: '#fff', borderRadius: 14, width: 370, height: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px #0001', position: 'relative' }}>
+          <div style={{ background: '#ede5e5ff', borderRadius: 14, width: 370, height: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px #0001', position: 'relative' }}>
             {/* Category dropdown (functional) */}
             <div style={{ width: '80%', marginBottom: 4 }}>
               <select
