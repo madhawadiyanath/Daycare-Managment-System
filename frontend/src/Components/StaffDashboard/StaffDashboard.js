@@ -15,7 +15,7 @@ function StaffDashboard() {
   const [childError, setChildError] = useState('');
   const [childDetails, setChildDetails] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', age: '', gender: '', parent: '', healthNotes: '' });
+  const [editForm, setEditForm] = useState({ name: '', age: '', gender: '', parent: '', healthNotes: '', checkInTime: '', checkOutTime: '', meals: '', napTimes: '', healthStatus: '', incidents: '', medication: '', moodBehavior: '', interactions: '' });
 
   const fetchPending = async () => {
     try {
@@ -53,7 +53,16 @@ function StaffDashboard() {
           age: res.data.data.age || '',
           gender: res.data.data.gender || '',
           parent: res.data.data.parent || '',
-          healthNotes: res.data.data.healthNotes || ''
+          healthNotes: res.data.data.healthNotes || '',
+          checkInTime: res.data.data.checkInTime || '',
+          checkOutTime: res.data.data.checkOutTime || '',
+          meals: res.data.data.meals || '',
+          napTimes: res.data.data.napTimes || '',
+          healthStatus: res.data.data.healthStatus || '',
+          incidents: res.data.data.incidents || '',
+          medication: res.data.data.medication || '',
+          moodBehavior: res.data.data.moodBehavior || '',
+          interactions: res.data.data.interactions || '',
         });
       } else {
         setChildError(res.data?.message || 'Child not found');
@@ -214,6 +223,60 @@ function StaffDashboard() {
                   <tr><th>Gender</th><td>{childDetails.gender}</td></tr>
                   <tr><th>Parent</th><td>{childDetails.parent}</td></tr>
                   <tr><th>Health Notes</th><td>{childDetails.healthNotes || '-'}</td></tr>
+                  <tr>
+                    <th
+                      colSpan="2"
+                      style={{
+                        background: '#eef2ff',
+                        color: '#1e3a8a',
+                        textAlign: 'left',
+                        fontWeight: 700,
+                        padding: '8px 12px',
+                        borderTop: '1px solid #dbeafe'
+                      }}
+                    >
+                      Basic Daily Routine
+                    </th>
+                  </tr>
+                  <tr><th>Check-in Time</th><td>{childDetails.checkInTime || '-'}</td></tr>
+                  <tr><th>Check-out Time</th><td>{childDetails.checkOutTime || '-'}</td></tr>
+                  <tr><th>Meal Updates</th><td>{childDetails.meals || '-'}</td></tr>
+                  <tr><th>Nap Times</th><td>{childDetails.napTimes || '-'}</td></tr>
+                  <tr>
+                    <th
+                      colSpan="2"
+                      style={{
+                        background: '#fee2e2',
+                        color: '#991b1b',
+                        textAlign: 'left',
+                        fontWeight: 700,
+                        padding: '8px 12px',
+                        borderTop: '1px solid #fecaca'
+                      }}
+                    >
+                      Health & Safety
+                    </th>
+                  </tr>
+                  <tr><th>Health Status</th><td>{childDetails.healthStatus || '-'}</td></tr>
+                  <tr><th>Accident/Incident Reports</th><td>{childDetails.incidents || '-'}</td></tr>
+                  <tr><th>Medication Updates</th><td>{childDetails.medication || '-'}</td></tr>
+                  <tr>
+                    <th
+                      colSpan="2"
+                      style={{
+                        background: '#ecfeff',
+                        color: '#155e75',
+                        textAlign: 'left',
+                        fontWeight: 700,
+                        padding: '8px 12px',
+                        borderTop: '1px solid #a5f3fc'
+                      }}
+                    >
+                      Behavior & Social Updates
+                    </th>
+                  </tr>
+                  <tr><th>Mood & Behavior</th><td>{childDetails.moodBehavior || '-'}</td></tr>
+                  <tr><th>Interaction with Other Kids</th><td>{childDetails.interactions || '-'}</td></tr>
                   <tr><th>Approved By</th><td>{childDetails.approvedBy ? (childDetails.approvedBy.name || childDetails.approvedBy.username || childDetails.approvedBy._id) : '-'}</td></tr>
                   <tr><th>Created</th><td>{new Date(childDetails.createdAt).toLocaleString()}</td></tr>
                 </tbody>
@@ -236,6 +299,15 @@ function StaffDashboard() {
                     gender: editForm.gender,
                     parent: editForm.parent,
                     healthNotes: editForm.healthNotes,
+                    checkInTime: editForm.checkInTime,
+                    checkOutTime: editForm.checkOutTime,
+                    meals: editForm.meals,
+                    napTimes: editForm.napTimes,
+                    healthStatus: editForm.healthStatus,
+                    incidents: editForm.incidents,
+                    medication: editForm.medication,
+                    moodBehavior: editForm.moodBehavior,
+                    interactions: editForm.interactions,
                   });
                   if (res.data?.success) {
                     setChildDetails(res.data.data);
@@ -269,6 +341,42 @@ function StaffDashboard() {
                 <div className="col">
                   <label>Health Notes</label>
                   <input type="text" value={editForm.healthNotes} onChange={(e) => setEditForm({ ...editForm, healthNotes: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Check-in Time</label>
+                  <input type="text" placeholder="e.g., 08:45 AM" value={editForm.checkInTime} onChange={(e) => setEditForm({ ...editForm, checkInTime: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Check-out Time</label>
+                  <input type="text" placeholder="e.g., 04:30 PM" value={editForm.checkOutTime} onChange={(e) => setEditForm({ ...editForm, checkOutTime: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Meal Updates</label>
+                  <input type="text" placeholder="e.g., Breakfast: cereal; Lunch: pasta" value={editForm.meals} onChange={(e) => setEditForm({ ...editForm, meals: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Nap Times</label>
+                  <input type="text" placeholder="e.g., 1:00 PM - 2:00 PM" value={editForm.napTimes} onChange={(e) => setEditForm({ ...editForm, napTimes: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Health Status</label>
+                  <input type="text" placeholder="e.g., Good; Mild cough" value={editForm.healthStatus} onChange={(e) => setEditForm({ ...editForm, healthStatus: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Accident/Incident Reports</label>
+                  <input type="text" placeholder="e.g., Minor fall at 10:15 AM" value={editForm.incidents} onChange={(e) => setEditForm({ ...editForm, incidents: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Medication Updates</label>
+                  <input type="text" placeholder="e.g., 5ml cough syrup at 2 PM" value={editForm.medication} onChange={(e) => setEditForm({ ...editForm, medication: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Mood & Behavior</label>
+                  <input type="text" placeholder="e.g., Cheerful; cooperative" value={editForm.moodBehavior} onChange={(e) => setEditForm({ ...editForm, moodBehavior: e.target.value })} />
+                </div>
+                <div className="col">
+                  <label>Interaction with Other Kids</label>
+                  <input type="text" placeholder="e.g., Played well with Sam and Mia" value={editForm.interactions} onChange={(e) => setEditForm({ ...editForm, interactions: e.target.value })} />
                 </div>
               </div>
               <div className="actions" style={{ marginTop: 10 }}>
