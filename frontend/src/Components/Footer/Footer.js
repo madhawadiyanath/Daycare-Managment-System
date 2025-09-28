@@ -19,13 +19,13 @@ function Footer() {
         </div>
 
         <div className="footer-col">
-          <h4 className="footer-heading">Customer Support</h4>
+          <h4 className="footer-heading">DAYCARE SUPPORT Section</h4>
           <ul className="footer-links">
-            <li><a href="#">Returns & Exchanges</a></li>
-            <li><a href="#">Shipping Information</a></li>
-            <li><a href="#">Track Your Order</a></li>
-            <li><a href="#">Promo Code Lookup</a></li>
-            <li><a href="#">Gift Card Lookup</a></li>
+            <li><a href="#">Parent Help Center</a></li>
+            <li><a href="#">Staff Training Portal</a></li>
+            <li><a href="#">System Documentation</a></li>
+            <li><a href="#">Emergency Support Line</a></li>
+            <li><a href="#">Billing Support</a></li>
           </ul>
         </div>
 
