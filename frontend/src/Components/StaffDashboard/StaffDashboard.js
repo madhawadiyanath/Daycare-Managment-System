@@ -16,6 +16,34 @@ function StaffDashboard() {
   const [childDetails, setChildDetails] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', age: '', gender: '', parent: '', healthNotes: '', checkInTime: '', checkOutTime: '', meals: '', napTimes: '', healthStatus: '', incidents: '', medication: '', moodBehavior: '', interactions: '' });
+  // Calendar event form state
+  const [eventForm, setEventForm] = useState({ title: '', date: '', description: '', childId: '' });
+  const [evtSubmitting, setEvtSubmitting] = useState(false);
+  const [evtError, setEvtError] = useState('');
+  const [evtSuccess, setEvtSuccess] = useState('');
+  // Events list management
+  const [evList, setEvList] = useState([]);
+  const [evLoading, setEvLoading] = useState(false);
+  const [evError, setEvError] = useState('');
+  const [evEditingId, setEvEditingId] = useState(null);
+  const [evEditForm, setEvEditForm] = useState({ title: '', date: '', description: '', childId: '' });
+
+  async function fetchEventsForMonth(baseDate = new Date()) {
+    try {
+      setEvLoading(true);
+      setEvError('');
+      const y = baseDate.getFullYear();
+      const m = baseDate.getMonth();
+      const from = new Date(y, m, 1).toISOString().slice(0, 10);
+      const to = new Date(y, m + 1, 0).toISOString().slice(0, 10);
+      const res = await axios.get('http://localhost:5000/calendar/events', { params: { from, to } });
+      setEvList(res.data?.data || []);
+    } catch (err) {
+      setEvError(err?.response?.data?.message || 'Failed to load events');
+    } finally {
+      setEvLoading(false);
+    }
+  }
 
   const fetchPending = async () => {
     try {
@@ -81,6 +109,8 @@ function StaffDashboard() {
           <h1>Staff Dashboard</h1>
           <p className="subtitle">Welcome{staff ? `, ${staff.name || staff.username}` : ''}</p>
         </div>
+
+        {/* Manage Calendar Events moved below Add Calendar Event */}
 
         {staff && (
           <div className="s-profile">
@@ -188,6 +218,243 @@ function StaffDashboard() {
                             </button>
                           </div>
                         </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Add Calendar Event (moved above View Child Details) */}
+        <div className="card full-width">
+          <h3>Add Calendar Event</h3>
+          <form
+            className="fm-form"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setEvtError('');
+              setEvtSuccess('');
+              if (!eventForm.title.trim() || !eventForm.date) {
+                setEvtError('Title and Date are required');
+                return;
+              }
+              setEvtSubmitting(true);
+              try {
+                const payload = {
+                  title: eventForm.title.trim(),
+                  date: eventForm.date,
+                  description: eventForm.description?.trim?.() || '',
+                  childId: eventForm.childId?.trim?.() || undefined,
+                  createdBy: staff?._id,
+                };
+                const res = await axios.post('http://localhost:5000/calendar/events', payload);
+                if (res.data?.success) {
+                  setEvtSuccess('Event created');
+                  setEventForm({ title: '', date: '', description: '', childId: '' });
+                  await fetchEventsForMonth(new Date(payload.date));
+                } else {
+                  setEvtError(res.data?.message || 'Failed to create event');
+                }
+              } catch (err) {
+                setEvtError(err?.response?.data?.message || 'Failed to create event');
+              } finally {
+                setEvtSubmitting(false);
+              }
+            }}
+          >
+            {evtError && <div className="form-error">{evtError}</div>}
+            {evtSuccess && <div className="form-success">{evtSuccess}</div>}
+            <div className="row">
+              <div className="col">
+                <label>Title</label>
+                <input
+                  type="text"
+                  value={eventForm.title}
+                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                  placeholder="Event title"
+                />
+              </div>
+              <div className="col">
+                <label>Date</label>
+                <input
+                  type="date"
+                  value={eventForm.date}
+                  onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="col">
+                <label>Description</label>
+                <input
+                  type="text"
+                  value={eventForm.description}
+                  onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                  placeholder="Optional details"
+                />
+              </div>
+              <div className="col">
+                <label>Child ID (optional)</label>
+                <input
+                  type="text"
+                  value={eventForm.childId}
+                  onChange={(e) => setEventForm({ ...eventForm, childId: e.target.value })}
+                  placeholder="Link to a child"
+                />
+              </div>
+            </div>
+            <button className="btn" type="submit" disabled={evtSubmitting}>
+              {evtSubmitting ? 'Creating...' : 'Create Event'}
+            </button>
+          </form>
+        </div>
+
+        {/* Manage Calendar Events (below Add Calendar Event) */}
+        <div className="card full-width">
+          <div className="list-header">
+            <h3>Manage Calendar Events</h3>
+            <button
+              className="btn btn-secondary"
+              type="button"
+              onClick={() => fetchEventsForMonth(new Date())}
+            >
+              Refresh
+            </button>
+          </div>
+          {evError && <div className="form-error">{evError}</div>}
+          {evLoading ? (
+            <p>Loading...</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Child ID</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evList.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center' }}>No events</td>
+                    </tr>
+                  ) : (
+                    evList.map((ev) => (
+                      <tr key={ev._id}>
+                        {evEditingId === ev._id ? (
+                          <>
+                            <td>
+                              <input
+                                className="table-input"
+                                type="text"
+                                value={evEditForm.title}
+                                onChange={(e) => setEvEditForm({ ...evEditForm, title: e.target.value })}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="table-input"
+                                type="date"
+                                value={evEditForm.date}
+                                onChange={(e) => setEvEditForm({ ...evEditForm, date: e.target.value })}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="table-input"
+                                type="text"
+                                value={evEditForm.description || ''}
+                                onChange={(e) => setEvEditForm({ ...evEditForm, description: e.target.value })}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                className="table-input"
+                                type="text"
+                                value={evEditForm.childId || ''}
+                                onChange={(e) => setEvEditForm({ ...evEditForm, childId: e.target.value })}
+                              />
+                            </td>
+                            <td className="actions-cell">
+                              <div className="row-actions">
+                                <button
+                                  className="btn"
+                                  type="button"
+                                  onClick={async () => {
+                                    try {
+                                      await axios.put(`http://localhost:5000/calendar/events/${ev._id}`, {
+                                        title: evEditForm.title,
+                                        date: evEditForm.date,
+                                        description: evEditForm.description,
+                                        childId: evEditForm.childId,
+                                      });
+                                      setEvEditingId(null);
+                                      setEvEditForm({ title: '', date: '', description: '', childId: '' });
+                                      await fetchEventsForMonth(new Date(evEditForm.date || ev.date));
+                                    } catch (err) {
+                                      alert(err?.response?.data?.message || 'Failed to update event');
+                                    }
+                                  }}
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  className="btn btn-secondary"
+                                  type="button"
+                                  onClick={() => { setEvEditingId(null); setEvEditForm({ title: '', date: '', description: '', childId: '' }); }}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td>{ev.title}</td>
+                            <td>{new Date(ev.date).toLocaleDateString()}</td>
+                            <td>{ev.description || '-'}</td>
+                            <td>{ev.childId || '-'}</td>
+                            <td className="actions-cell">
+                              <div className="row-actions">
+                                <button
+                                  className="btn btn-secondary"
+                                  type="button"
+                                  onClick={() => {
+                                    setEvEditingId(ev._id);
+                                    setEvEditForm({
+                                      title: ev.title || '',
+                                      date: (new Date(ev.date).toISOString().slice(0, 10)),
+                                      description: ev.description || '',
+                                      childId: ev.childId || '',
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="btn btn-danger"
+                                  type="button"
+                                  onClick={async () => {
+                                    if (!window.confirm('Delete this event?')) return;
+                                    try {
+                                      await axios.delete(`http://localhost:5000/calendar/events/${ev._id}`);
+                                      await fetchEventsForMonth(new Date(ev.date));
+                                    } catch (err) {
+                                      alert(err?.response?.data?.message || 'Failed to delete event');
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))
                   )}

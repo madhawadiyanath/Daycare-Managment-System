@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 function startOfMonth(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -21,6 +22,9 @@ function isSameDay(a, b) {
 export default function Calendar({ onDateSelect }) {
   const [viewDate, setViewDate] = useState(new Date());
   const [selected, setSelected] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const weeks = useMemo(() => {
     const start = startOfMonth(viewDate);
@@ -48,6 +52,32 @@ export default function Calendar({ onDateSelect }) {
 
   const monthLabel = viewDate.toLocaleString(undefined, { month: 'long', year: 'numeric' });
   const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function fmt(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  // Fetch events for the visible month
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        setLoading(true);
+        setError("");
+        const from = fmt(startOfMonth(viewDate));
+        const to = fmt(endOfMonth(viewDate));
+        const res = await axios.get('http://localhost:5000/calendar/events', { params: { from, to } });
+        setEvents(res.data?.data || []);
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Failed to load events');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchEvents();
+  }, [viewDate]);
 
   return (
     <div className="calendar-wrap" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 1px 2px rgba(16,24,40,0.05)', padding: 16 }}>
@@ -79,6 +109,8 @@ export default function Calendar({ onDateSelect }) {
           const inMonth = d.getMonth() === viewDate.getMonth();
           const isToday = isSameDay(d, new Date());
           const isSelected = selected && isSameDay(d, selected);
+          const dayKey = fmt(d);
+          const hasEvents = events.some(evt => evt.date && dayKey === fmt(new Date(evt.date)));
           return (
             <button
               key={idx}
@@ -96,23 +128,51 @@ export default function Calendar({ onDateSelect }) {
                 boxShadow: isToday ? 'inset 0 0 0 2px #22c55e' : 'none',
                 display: 'flex',
                 alignItems: 'flex-start',
-                justifyContent: 'flex-end',
+                justifyContent: 'space-between',
                 padding: 8,
-                fontWeight: 600
+                fontWeight: 600,
+                position: 'relative'
               }}
               className="calendar-day"
             >
-              {d.getDate()}
+              <span>{d.getDate()}</span>
+              {hasEvents && (
+                <span title="Has events" style={{
+                  width: 8, height: 8, background: '#1d4ed8', borderRadius: 999, alignSelf: 'flex-end'
+                }} />
+              )}
             </button>
           );
         })}
       </div>
 
-      {selected && (
-        <div style={{ marginTop: 12, color: '#334155' }}>
-          <strong>Selected:</strong> {selected.toLocaleDateString()}
-        </div>
-      )}
+      {/* Events list for selected day */}
+      <div style={{ marginTop: 12 }}>
+        {loading && <p style={{ color: '#64748b' }}>Loading events...</p>}
+        {error && <div className="form-error">{error}</div>}
+        {selected && (
+          <div>
+            <div style={{ color: '#334155', marginBottom: 8 }}>
+              <strong>Events on {selected.toLocaleDateString()}:</strong>
+            </div>
+            <div style={{ display: 'grid', gap: 8 }}>
+              {events.filter(e => e.date && fmt(new Date(e.date)) === fmt(selected)).length === 0 ? (
+                <div style={{ color: '#64748b' }}>No events</div>
+              ) : (
+                events
+                  .filter(e => e.date && fmt(new Date(e.date)) === fmt(selected))
+                  .map((e) => (
+                    <div key={e._id} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 10, background: '#f8fafc' }}>
+                      <div style={{ fontWeight: 600 }}>{e.title}</div>
+                      {e.description && <div style={{ color: '#475569', fontSize: 14 }}>{e.description}</div>}
+                      {e.childId && <div style={{ color: '#64748b', fontSize: 12 }}>Child ID: {e.childId}</div>}
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
