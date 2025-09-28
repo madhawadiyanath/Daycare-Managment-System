@@ -164,6 +164,63 @@ export default function ViewChildren() {
                     <tr><th>Gender</th><td>{selectedChild.gender}</td></tr>
                     <tr><th>Parent</th><td>{selectedChild.parent}</td></tr>
                     <tr><th>Health Notes</th><td>{selectedChild.healthNotes || '-'}</td></tr>
+                    {/* Basic Daily Routine */}
+                    <tr>
+                      <th
+                        colSpan="2"
+                        style={{
+                          background: '#eef2ff',
+                          color: '#1e3a8a',
+                          textAlign: 'left',
+                          fontWeight: 700,
+                          padding: '8px 12px',
+                          borderTop: '1px solid #dbeafe'
+                        }}
+                      >
+                        Basic Daily Routine
+                      </th>
+                    </tr>
+                    <tr><th>Check-in Time</th><td>{selectedChild.checkInTime || '-'}</td></tr>
+                    <tr><th>Check-out Time</th><td>{selectedChild.checkOutTime || '-'}</td></tr>
+                    <tr><th>Meal Updates</th><td>{selectedChild.meals || '-'}</td></tr>
+                    <tr><th>Nap Times</th><td>{selectedChild.napTimes || '-'}</td></tr>
+                    {/* Health & Safety */}
+                    <tr>
+                      <th
+                        colSpan="2"
+                        style={{
+                          background: '#fee2e2',
+                          color: '#991b1b',
+                          textAlign: 'left',
+                          fontWeight: 700,
+                          padding: '8px 12px',
+                          borderTop: '1px solid #fecaca'
+                        }}
+                      >
+                        Health & Safety
+                      </th>
+                    </tr>
+                    <tr><th>Health Status</th><td>{selectedChild.healthStatus || '-'}</td></tr>
+                    <tr><th>Accident/Incident Reports</th><td>{selectedChild.incidents || '-'}</td></tr>
+                    <tr><th>Medication Updates</th><td>{selectedChild.medication || '-'}</td></tr>
+                    {/* Behavior & Social Updates */}
+                    <tr>
+                      <th
+                        colSpan="2"
+                        style={{
+                          background: '#ecfeff',
+                          color: '#155e75',
+                          textAlign: 'left',
+                          fontWeight: 700,
+                          padding: '8px 12px',
+                          borderTop: '1px solid #a5f3fc'
+                        }}
+                      >
+                        Behavior & Social Updates
+                      </th>
+                    </tr>
+                    <tr><th>Mood & Behavior</th><td>{selectedChild.moodBehavior || '-'}</td></tr>
+                    <tr><th>Interaction with Other Kids</th><td>{selectedChild.interactions || '-'}</td></tr>
                     <tr><th>Approved By</th><td>{selectedChild.approvedBy ? (selectedChild.approvedBy.name || selectedChild.approvedBy.username || selectedChild.approvedBy._id) : '-'}</td></tr>
                     <tr><th>Created</th><td>{selectedChild.createdAt ? new Date(selectedChild.createdAt).toLocaleString() : '-'}</td></tr>
                   </tbody>
