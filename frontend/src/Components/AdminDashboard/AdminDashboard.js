@@ -42,6 +42,10 @@ function AdminDashboard() {
   const [imEditingId, setImEditingId] = useState(null);
   const [imEditForm, setImEditForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
 
+  // Input sanitizers: only letters/spaces for names, only digits for phones
+  const onlyLetters = (val) => val.replace(/[^a-zA-Z\s]/g, '');
+  const onlyDigits = (val) => val.replace(/\D/g, '');
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -246,7 +250,7 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={fmForm.name}
-                      onChange={(e) => setFmForm({ ...fmForm, name: e.target.value })}
+                      onChange={(e) => setFmForm({ ...fmForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
                   </div>
@@ -282,7 +286,8 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={fmForm.phone}
-                      onChange={(e) => setFmForm({ ...fmForm, phone: e.target.value })}
+                      onChange={(e) => setFmForm({ ...fmForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
                   </div>
@@ -337,7 +342,7 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={editForm.name}
-                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                    onChange={(e) => setEditForm({ ...editForm, name: onlyLetters(e.target.value) })}
                                   />
                                 </td>
                                 <td>
@@ -361,7 +366,8 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={editForm.phone || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                    onChange={(e) => setEditForm({ ...editForm, phone: onlyDigits(e.target.value) })}
+                                    inputMode="numeric"
                                   />
                                 </td>
                                 <td className="actions-cell">
@@ -514,7 +520,7 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={tForm.name}
-                      onChange={(e) => setTForm({ ...tForm, name: e.target.value })}
+                      onChange={(e) => setTForm({ ...tForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
                   </div>
@@ -550,7 +556,8 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={tForm.phone}
-                      onChange={(e) => setTForm({ ...tForm, phone: e.target.value })}
+                      onChange={(e) => setTForm({ ...tForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
                   </div>
@@ -611,7 +618,7 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={tEditForm.name}
-                                    onChange={(e) => setTEditForm({ ...tEditForm, name: e.target.value })}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, name: onlyLetters(e.target.value) })}
                                   />
                                 </td>
                                 <td>
@@ -635,7 +642,8 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={tEditForm.phone || ''}
-                                    onChange={(e) => setTEditForm({ ...tEditForm, phone: e.target.value })}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, phone: onlyDigits(e.target.value) })}
+                                    inputMode="numeric"
                                   />
                                 </td>
                                 <td>
@@ -784,9 +792,10 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={sForm.name}
-                      onChange={(e) => setSForm({ ...sForm, name: e.target.value })}
+                      onChange={(e) => setSForm({ ...sForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
+
                   </div>
                   <div className="col">
                     <label>Email</label>
@@ -796,6 +805,7 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, email: e.target.value })}
                       placeholder="email@example.com"
                     />
+
                   </div>
                   <div className="col">
                     <label>Username</label>
@@ -805,6 +815,7 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, username: e.target.value })}
                       placeholder="Unique username"
                     />
+
                   </div>
                   <div className="col">
                     <label>Password</label>
@@ -814,15 +825,18 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, password: e.target.value })}
                       placeholder="Min 6 characters"
                     />
+
                   </div>
                   <div className="col">
                     <label>Phone</label>
                     <input
                       type="text"
                       value={sForm.phone}
-                      onChange={(e) => setSForm({ ...sForm, phone: e.target.value })}
+                      onChange={(e) => setSForm({ ...sForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
+
                   </div>
                   <div className="col">
                     <label>Role</label>
@@ -832,6 +846,7 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, role: e.target.value })}
                       placeholder="e.g., Assistant, Cleaner"
                     />
+
                   </div>
                 </div>
                 {sError && <div className="form-error">{sError}</div>}
@@ -877,7 +892,7 @@ function AdminDashboard() {
                             {sEditingId === s._id ? (
                               <>
                                 <td>
-                                  <input className="table-input" type="text" value={sEditForm.name} onChange={(e) => setSEditForm({ ...sEditForm, name: e.target.value })} />
+                                  <input className="table-input" type="text" value={sEditForm.name} onChange={(e) => setSEditForm({ ...sEditForm, name: onlyLetters(e.target.value) })} />
                                 </td>
                                 <td>
                                   <input className="table-input" type="text" value={sEditForm.username} onChange={(e) => setSEditForm({ ...sEditForm, username: e.target.value })} />
@@ -886,7 +901,7 @@ function AdminDashboard() {
                                   <input className="table-input" type="email" value={sEditForm.email} onChange={(e) => setSEditForm({ ...sEditForm, email: e.target.value })} />
                                 </td>
                                 <td>
-                                  <input className="table-input" type="text" value={sEditForm.phone || ''} onChange={(e) => setSEditForm({ ...sEditForm, phone: e.target.value })} />
+                                  <input className="table-input" type="text" value={sEditForm.phone || ''} onChange={(e) => setSEditForm({ ...sEditForm, phone: onlyDigits(e.target.value) })} inputMode="numeric" />
                                 </td>
                                 <td>
                                   <input className="table-input" type="text" value={sEditForm.role || ''} onChange={(e) => setSEditForm({ ...sEditForm, role: e.target.value })} />
@@ -993,9 +1008,10 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={imForm.name}
-                      onChange={(e) => setImForm({ ...imForm, name: e.target.value })}
+                      onChange={(e) => setImForm({ ...imForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
+
                   </div>
                   <div className="col">
                     <label>Email</label>
@@ -1005,6 +1021,7 @@ function AdminDashboard() {
                       onChange={(e) => setImForm({ ...imForm, email: e.target.value })}
                       placeholder="email@example.com"
                     />
+
                   </div>
                   <div className="col">
                     <label>Username</label>
@@ -1014,6 +1031,7 @@ function AdminDashboard() {
                       onChange={(e) => setImForm({ ...imForm, username: e.target.value })}
                       placeholder="Unique username"
                     />
+
                   </div>
                   <div className="col">
                     <label>Password</label>
@@ -1023,15 +1041,18 @@ function AdminDashboard() {
                       onChange={(e) => setImForm({ ...imForm, password: e.target.value })}
                       placeholder="Min 6 characters"
                     />
+
                   </div>
                   <div className="col">
                     <label>Phone</label>
                     <input
                       type="text"
                       value={imForm.phone}
-                      onChange={(e) => setImForm({ ...imForm, phone: e.target.value })}
+                      onChange={(e) => setImForm({ ...imForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
+
                   </div>
                 </div>
                 {imError && <div className="form-error">{imError}</div>}
@@ -1078,7 +1099,7 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={imEditForm.name}
-                                    onChange={(e) => setImEditForm({ ...imEditForm, name: e.target.value })}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, name: onlyLetters(e.target.value) })}
                                   />
                                 </td>
                                 <td>
@@ -1102,7 +1123,8 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={imEditForm.phone || ''}
-                                    onChange={(e) => setImEditForm({ ...imEditForm, phone: e.target.value })}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, phone: onlyDigits(e.target.value) })}
+                                    inputMode="numeric"
                                   />
                                 </td>
                                 <td className="actions-cell">
