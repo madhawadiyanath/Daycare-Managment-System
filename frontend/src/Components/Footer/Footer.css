@@ -1,7 +1,7 @@
 /* Footer.css - Full width attractive footer for Home page */
 
 .footer {
-  background: linear-gradient(180deg, #f7f9fc 0%, #eef3f9 100%);
+  background: linear-gradient(180deg, #477fd3 0%, #f9f8ee 100%);
   color: #1f2d3d;
   margin-top: 48px;
   border-top: 1px solid rgba(0,0,0,0.06);
@@ -21,7 +21,7 @@
 }
 
 .footer__wave path {
-  fill: #eef3f9;
+  fill: #6476ff;
 }
 
 .footer__container {
