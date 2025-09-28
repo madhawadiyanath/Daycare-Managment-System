@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from "../Nav/Nav";
+import Footer from "../Footer/Footer";
 import './Home.css';
 
 function Home() {
@@ -348,6 +349,7 @@ function Home() {
           </div>
         </section>
       </main>
+      <Footer/>
     </div>
   )
 }
