@@ -1,6 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./CreateChild.css";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+// Use the same logo as expense report for consistent branding
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const logoImage = require('../../assets/WhatsApp Image 2025-08-05 at 19.02.34_b673857a - Copy.jpg');
 
 export default function ViewChildren() {
   const [children, setChildren] = useState([]);
@@ -13,6 +18,148 @@ export default function ViewChildren() {
   // UI state
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState("name"); // name | age | created
+  const detailsRef = useRef(null);
+
+  const handleDownloadPdf = async () => {
+    try {
+      if (!selectedChild) return;
+
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Top decorative border
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(3);
+      doc.line(10, 10, pageWidth - 10, 10);
+
+      // Logo (same asset as expense report)
+      try {
+        doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+      } catch (logoError) {
+        // Fallback painted box if logo missing
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 15, 30, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('LITTLE', 30, 28, { align: 'center' });
+        doc.text('NEST', 30, 35, { align: 'center' });
+      }
+
+      // Company name + tagline
+      doc.setFontSize(24);
+      doc.setTextColor(30, 58, 138);
+      doc.text('LITTLE NEST DAYCARE', 55, 28);
+      doc.setFontSize(12);
+      doc.setTextColor(70, 130, 180);
+      doc.text('Quality Childcare & Early Learning Center', 55, 36);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('📍 123 Childcare Lane, City, State 12345 | 📞 (555) 123-4567', 55, 42);
+      doc.text('✉️ info@littlenest.com | 🌐 www.littlenest.com', 55, 46);
+
+      // Title panel
+      doc.setFillColor(245, 250, 255);
+      doc.rect(10, 55, pageWidth - 20, 25, 'F');
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(2);
+      doc.rect(10, 55, pageWidth - 20, 25);
+      doc.setDrawColor(70, 130, 180);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 57, pageWidth - 24, 21);
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text('CHILD DETAILS REPORT', pageWidth / 2, 70, { align: 'center' });
+
+      // Metadata box
+      doc.setFillColor(250, 252, 255);
+      doc.rect(10, 85, pageWidth - 20, 18, 'F');
+      doc.setDrawColor(200, 220, 240);
+      doc.setLineWidth(0.5);
+      doc.rect(10, 85, pageWidth - 20, 18);
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const currentDate = new Date();
+      const fullName = `${selectedChild?.name || ''}`;
+      doc.text(`Report Generated: ${currentDate.toLocaleDateString()} at ${currentDate.toLocaleTimeString()}`, 15, 92);
+      doc.text(`Child: ${fullName || 'N/A'}`, 15, 97);
+      doc.text(`Child ID: ${selectedChild?.childId || 'N/A'}`, pageWidth / 2 + 10, 92);
+      doc.text(`Parent: ${selectedChild?.parent || 'N/A'}`, pageWidth / 2 + 10, 97);
+
+      // Details table
+      const tableBody = [
+        ['Child ID', selectedChild.childId || 'N/A'],
+        ['Name', selectedChild.name || 'N/A'],
+        ['Age', selectedChild.age != null ? String(selectedChild.age) : 'N/A'],
+        ['Gender', selectedChild.gender || 'N/A'],
+        ['Parent', selectedChild.parent || 'N/A'],
+        ['Health Notes', selectedChild.healthNotes || 'N/A'],
+        ['Check-in Time', selectedChild.checkInTime || 'N/A'],
+        ['Check-out Time', selectedChild.checkOutTime || 'N/A'],
+        ['Meal Updates', selectedChild.meals || 'N/A'],
+        ['Nap Times', selectedChild.napTimes || 'N/A'],
+        ['Health Status', selectedChild.healthStatus || 'N/A'],
+        ['Accident/Incident Reports', selectedChild.incidents || 'N/A'],
+        ['Medication Updates', selectedChild.medication || 'N/A'],
+        ['Mood & Behavior', selectedChild.moodBehavior || 'N/A'],
+        ['Interaction with Other Kids', selectedChild.interactions || 'N/A'],
+        ['Approved By', selectedChild.approvedBy ? (selectedChild.approvedBy.name || selectedChild.approvedBy.username || selectedChild.approvedBy._id) : 'N/A'],
+        ['Created', selectedChild.createdAt ? new Date(selectedChild.createdAt).toLocaleString() : 'N/A']
+      ];
+
+      const startY = 110;
+      autoTable(doc, {
+        head: [['Field', 'Value']],
+        body: tableBody,
+        startY,
+        theme: 'grid',
+        alternateRowStyles: { fillColor: [248, 251, 255] },
+        headStyles: {
+          fillColor: [30, 58, 138],
+          textColor: [255, 255, 255],
+          fontSize: 11,
+          fontStyle: 'bold',
+          halign: 'center',
+          cellPadding: { top: 5, right: 3, bottom: 5, left: 3 }
+        },
+        bodyStyles: {
+          fontSize: 9,
+          cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+          lineColor: [180, 200, 220],
+          lineWidth: 0.3
+        },
+        styles: {
+          lineColor: [70, 130, 180],
+          lineWidth: 0.5,
+          cellPadding: 4
+        },
+        columnStyles: {
+          0: { cellWidth: 60, fontStyle: 'bold' },
+          1: { cellWidth: pageWidth - 20 - 60 }
+        }
+      });
+
+      // Footer
+      const footerY = pageHeight - 25;
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(1);
+      doc.line(10, footerY, pageWidth - 10, footerY);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Little Nest Daycare - Confidential Child Document', 15, footerY + 8);
+      doc.text('This document may contain sensitive personal information. Handle with care.', 15, footerY + 12);
+      doc.text('Generated by: Daycare Management System v1.0', pageWidth - 15, footerY + 8, { align: 'right' });
+
+      const fileNameParts = [];
+      if (selectedChild?.childId) fileNameParts.push(selectedChild.childId);
+      if (selectedChild?.name) fileNameParts.push(selectedChild.name.replace(/\s+/g, '_'));
+      const fileName = `${fileNameParts.join('_') || 'child'}_details_report.pdf`;
+      doc.save(fileName);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to generate PDF');
+    }
+  };
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -155,7 +302,7 @@ export default function ViewChildren() {
             {detailsError && <div className="form-error" style={{ marginTop: 8 }}>{detailsError}</div>}
             {detailsLoading && <p>Loading details...</p>}
             {selectedChild && !detailsLoading && (
-              <div className="table-wrap" style={{ marginTop: 10 }}>
+              <div className="table-wrap" style={{ marginTop: 10 }} ref={detailsRef}>
                 <table className="table">
                   <tbody>
                     <tr><th>Child ID</th><td>{selectedChild.childId}</td></tr>
@@ -225,7 +372,8 @@ export default function ViewChildren() {
                     <tr><th>Created</th><td>{selectedChild.createdAt ? new Date(selectedChild.createdAt).toLocaleString() : '-'}</td></tr>
                   </tbody>
                 </table>
-                <div className="actions" style={{ marginTop: 10 }}>
+                <div className="actions" style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button className="submit-btn" type="button" onClick={handleDownloadPdf}>Download PDF</button>
                   <button className="submit-btn" type="button" onClick={() => { setSelectedChild(null); setDetailsError(""); }}>Close</button>
                 </div>
               </div>
