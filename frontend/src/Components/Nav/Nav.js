@@ -36,7 +36,7 @@ function Nav() {
                             <a href="#" class="dropdown-link">Attendance Tracking</a>
                         </li>
                         <li class="dropdown-item">
-                            <a href="#" class="dropdown-link">Learning & Assessment</a>
+                            <Link to="/learning-activities" class="dropdown-link">Learning & Assessment</Link>
                         </li>
                         <li class="dropdown-item">
                             <Link to="/mainfina" class="dropdown-link" >Billing & Finance</Link>

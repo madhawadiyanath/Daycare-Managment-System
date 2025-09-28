@@ -24,7 +24,25 @@ const updateChildByChildId = async (req, res) => {
     if (!childId || !String(childId).trim()) {
       return res.status(400).json({ success: false, message: 'childId is required' });
     }
-    const { name, age, gender, parent, healthNotes } = req.body;
+    const {
+      name,
+      age,
+      gender,
+      parent,
+      healthNotes,
+      // Basic Daily Routine
+      checkInTime,
+      checkOutTime,
+      meals,
+      napTimes,
+      // Health & Safety
+      healthStatus,
+      incidents,
+      medication,
+      // Behavior & Social Updates
+      moodBehavior,
+      interactions,
+    } = req.body;
 
     const child = await Child.findOne({ childId: String(childId).trim() });
     if (!child) {
@@ -36,6 +54,15 @@ const updateChildByChildId = async (req, res) => {
     if (typeof gender !== 'undefined') child.gender = gender;
     if (typeof parent !== 'undefined') child.parent = parent;
     if (typeof healthNotes !== 'undefined') child.healthNotes = healthNotes;
+    if (typeof checkInTime !== 'undefined') child.checkInTime = checkInTime;
+    if (typeof checkOutTime !== 'undefined') child.checkOutTime = checkOutTime;
+    if (typeof meals !== 'undefined') child.meals = meals;
+    if (typeof napTimes !== 'undefined') child.napTimes = napTimes;
+    if (typeof healthStatus !== 'undefined') child.healthStatus = healthStatus;
+    if (typeof incidents !== 'undefined') child.incidents = incidents;
+    if (typeof medication !== 'undefined') child.medication = medication;
+    if (typeof moodBehavior !== 'undefined') child.moodBehavior = moodBehavior;
+    if (typeof interactions !== 'undefined') child.interactions = interactions;
 
     await child.save();
     const populated = await Child.findById(child._id).populate('approvedBy', '-password');
