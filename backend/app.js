@@ -15,6 +15,7 @@ const inventoryManagerRoutes = require("./routes/inventoryManagerRoute");
 const childRequestRoutes = require("./routes/childRequestRoute");
 const childRoutes = require("./routes/childRoute");
 const calendarRoutes = require("./routes/calendarEventRoute");
+const learningActivityRoutes = require("./routes/learningActivityRoute");
 
 const { createDefaultAdmin } = require("./models/AdminModel");
 
@@ -39,6 +40,7 @@ app.use("/admin/inventory-managers", inventoryManagerRoutes);
 app.use("/child-requests", childRequestRoutes);
 app.use("/children", childRoutes);
 app.use("/calendar", calendarRoutes);
+app.use("/learning-activities", learningActivityRoutes);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");
