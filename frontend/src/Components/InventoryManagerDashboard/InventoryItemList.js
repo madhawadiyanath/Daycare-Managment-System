@@ -1,4 +1,6 @@
 import React from 'react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
   if (!open) return null;
@@ -8,13 +10,47 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
     return new Date(date).toLocaleDateString();
   };
 
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF('l', 'pt', 'a4');
+    doc.setFontSize(18);
+    doc.text('All Inventory Items', 40, 40);
+    const head = [[
+      'Name', 'Category', 'Stock', 'Expiry', 'Supplier', 'Created On', 'Modified On'
+    ]];
+    const body = (items || []).map(item => [
+      item.name,
+      item.category,
+      item.stock,
+      formatDate(item.expiry),
+      item.supplier,
+      formatDate(item.createdOn),
+      formatDate(item.modifiedOn)
+    ]);
+    autoTable(doc, {
+      head,
+      body,
+      startY: 60,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [25, 210, 25] }
+    });
+    doc.save('inventory-list.pdf');
+  };
+
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
       background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
     }}>
       <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 1500, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-        <h2 style={{ marginBottom: 24 }}>All Inventory Items</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h2 style={{ margin: 0 }}>All Inventory Items</h2>
+          <button
+            style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
+            onClick={handleDownloadPdf}
+          >
+            Download PDF
+          </button>
+        </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
           <thead>
             <tr>

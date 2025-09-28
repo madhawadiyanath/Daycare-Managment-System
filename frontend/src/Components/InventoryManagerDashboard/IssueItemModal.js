@@ -1,18 +1,66 @@
 import React, { useState } from 'react';
 
+
+function getSriLankaDateTimeLocal() {
+  // Get current time in UTC+5:30 (Sri Lanka)
+  const now = new Date();
+  // Get UTC time in ms, add 5.5 hours in ms
+  const offsetMs = 5.5 * 60 * 60 * 1000;
+  const slTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + offsetMs);
+  // Format as yyyy-MM-ddTHH:mm
+  return slTime.toISOString().slice(0, 16);
+}
+
+function getSriLankaISOString() {
+  // Get current time in UTC+5:30 (Sri Lanka) as ISO string
+  const now = new Date();
+  const offsetMs = 5.5 * 60 * 60 * 1000;
+  const slTime = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + offsetMs);
+  return slTime.toISOString();
+}
+
 function IssueItemModal({ open, onClose, onSubmit, categories, products }) {
   const [form, setForm] = useState({
     category: '',
     name: '',
     quantity: '',
-    issueDate: new Date().toISOString().slice(0, 16), // yyyy-MM-ddTHH:mm
+    issueDate: getSriLankaDateTimeLocal(),
   });
+
+  // Find the selected product's stock
+  const selectedProduct = products.find(
+    p => p.name === form.name && p.category === form.category
+  );
+  const inStock = selectedProduct ? selectedProduct.stock : 0;
   const [error, setError] = useState('');
+
+
+  // Reset form with Sri Lankan time when modal opens
+  React.useEffect(() => {
+    if (open) {
+      setForm({
+        category: '',
+        name: '',
+        quantity: '',
+        issueDate: getSriLankaDateTimeLocal(),
+      });
+      setError('');
+    }
+    // eslint-disable-next-line
+  }, [open]);
 
   if (!open) return null;
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'quantity') {
+      // Prevent entering more than inStock
+      let val = value.replace(/[^0-9]/g, '');
+      if (inStock && Number(val) > inStock) val = inStock;
+      setForm({ ...form, quantity: val });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = (e) => {
@@ -22,7 +70,11 @@ function IssueItemModal({ open, onClose, onSubmit, categories, products }) {
       setError('All fields are required');
       return;
     }
-    onSubmit({ ...form, issueDate: new Date().toISOString() });
+    if (Number(form.quantity) > inStock) {
+      setError(`Cannot issue more than in-stock quantity (${inStock})`);
+      return;
+    }
+  onSubmit({ ...form, issueDate: getSriLankaISOString() });
   };
 
   return (
@@ -57,7 +109,23 @@ function IssueItemModal({ open, onClose, onSubmit, categories, products }) {
           </div>
           <div style={{ marginBottom: 16 }}>
             <label>Quantity<br/>
-              <input name="quantity" type="number" min="1" value={form.quantity} onChange={handleChange} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              <input
+                name="quantity"
+                type="number"
+                min="1"
+                max={inStock || 1}
+                value={form.quantity}
+                onChange={handleChange}
+                required
+                style={{ width: '100%', padding: 8, marginTop: 4 }}
+                disabled={!form.name || !form.category}
+                title={form.name && form.category ? `Max: ${inStock}` : 'Select product first'}
+              />
+              {form.name && form.category && (
+                <div style={{ color: '#888', fontSize: 12, marginTop: 2 }}>
+                  In Stock: {inStock}
+                </div>
+              )}
             </label>
           </div>
           <div style={{ marginBottom: 16 }}>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 function SupplierModal({ open, onClose }) {
   const [suppliers, setSuppliers] = useState([]);
@@ -99,6 +101,36 @@ function SupplierModal({ open, onClose }) {
     }}>
       <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 1000, boxShadow: '0 2px 16px rgba(0,0,0,0.2)', maxHeight: '80vh', overflowY: 'auto' }}>
         <h2 style={{ marginBottom: 24 }}>Suppliers</h2>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button
+            style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
+            onClick={() => {
+              const doc = new jsPDF('l', 'pt', 'a4');
+              doc.setFontSize(18);
+              doc.text('Supplier List', 40, 40);
+              const head = [[
+                'Name', 'Address', 'Contact Number', 'Email Address', 'Company Name'
+              ]];
+              const body = (suppliers || []).map(s => [
+                s.name,
+                s.address,
+                s.contact,
+                s.email,
+                s.company
+              ]);
+              autoTable(doc, {
+                head,
+                body,
+                startY: 60,
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [25, 210, 25] }
+              });
+              doc.save('supplier-list.pdf');
+            }}
+          >
+            Download PDF
+          </button>
+        </div>
         {loadingSuppliers && <div style={{ color: '#888', marginBottom: 8 }}>Loading suppliers...</div>}
         {supplierError && <div style={{ color: 'red', marginBottom: 8 }}>{supplierError}</div>}
         {supplierSuccess && <div style={{ color: 'green', marginBottom: 8 }}>{supplierSuccess}</div>}
@@ -145,9 +177,15 @@ function SupplierModal({ open, onClose }) {
               name="name"
               placeholder="Name"
               value={supplierForm.name}
-              onChange={e => setSupplierForm({ ...supplierForm, name: e.target.value })}
+              onChange={e => {
+                // Only allow letters and spaces
+                const lettersOnly = e.target.value.replace(/[^A-Za-z ]/g, '');
+                setSupplierForm({ ...supplierForm, name: lettersOnly });
+              }}
               required
               style={{ flex: 1, padding: 8 }}
+              pattern="[A-Za-z ]+"
+              title="Only letters allowed"
             />
             <input
               name="address"
@@ -164,8 +202,10 @@ function SupplierModal({ open, onClose }) {
               placeholder="Contact Number"
               value={supplierForm.contact}
               onChange={e => {
-                setSupplierForm({ ...supplierForm, contact: e.target.value });
-                if (e.target.value && !/^07\d{0,8}$/.test(e.target.value)) {
+                // Only allow digits
+                const digitsOnly = e.target.value.replace(/[^0-9]/g, '');
+                setSupplierForm({ ...supplierForm, contact: digitsOnly });
+                if (digitsOnly && !/^07\d{0,8}$/.test(digitsOnly)) {
                   setSupplierError('Contact number must start with 07 and be up to 10 digits');
                 } else {
                   setSupplierError('');
@@ -174,6 +214,8 @@ function SupplierModal({ open, onClose }) {
               required
               style={{ flex: 1, padding: 8 }}
               maxLength={10}
+              pattern="[0-9]+"
+              title="Only digits allowed"
             />
             <input
               name="email"
@@ -195,9 +237,15 @@ function SupplierModal({ open, onClose }) {
               name="company"
               placeholder="Company Name"
               value={supplierForm.company}
-              onChange={e => setSupplierForm({ ...supplierForm, company: e.target.value })}
+              onChange={e => {
+                // Only allow letters and spaces
+                const lettersOnly = e.target.value.replace(/[^A-Za-z ]/g, '');
+                setSupplierForm({ ...supplierForm, company: lettersOnly });
+              }}
               required
               style={{ flex: 1, padding: 8 }}
+              pattern="[A-Za-z ]+"
+              title="Only letters allowed"
             />
           </div>
           <button

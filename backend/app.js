@@ -15,7 +15,10 @@ const inventoryManagerRoutes = require("./routes/inventoryManagerRoute");
 const childRequestRoutes = require("./routes/childRequestRoute");
 const childRoutes = require("./routes/childRoute");
 
+const supplierDropdownRoute = require('./routes/supplierDropdownRoute');
+
 const supplierRoute = require('./routes/supplierRoute');
+const issueSummaryRoute = require('./routes/issueSummaryRoute');
 const { createDefaultAdmin } = require("./models/AdminModel");
 
 const app = express();
@@ -38,7 +41,9 @@ app.use("/admin/staff", staffRoutes);
 app.use("/admin/inventory-managers", inventoryManagerRoutes);
 app.use("/child-requests", childRequestRoutes);
 app.use("/children", childRoutes);
+app.use('/admin/supplier-dropdown', supplierDropdownRoute);
 app.use('/admin/suppliers', supplierRoute);
+app.use('/admin/issue-summary', issueSummaryRoute);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");

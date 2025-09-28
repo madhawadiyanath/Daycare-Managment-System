@@ -1,6 +1,8 @@
 
 
 import React, { useEffect, useState } from 'react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SupplierModal from '../Supplier/supplier';
@@ -22,6 +24,29 @@ const icons = {
 };
 
 function InventoryManagerDashboard() {
+  // Supplier names for dropdown
+  const [supplierNames, setSupplierNames] = useState([]);
+
+  // Summary popup state
+  const [showSummary, setShowSummary] = useState(false);
+
+  // Fetch supplier names for dropdown (from /admin/supplier-dropdown)
+  const fetchSupplierNames = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/admin/supplier-dropdown');
+      let data = res.data;
+      if (!Array.isArray(data)) {
+        if (data && Array.isArray(data.data)) {
+          data = data.data;
+        } else {
+          data = [];
+        }
+      }
+      setSupplierNames(data.map(s => s.name).filter(Boolean));
+    } catch (err) {
+      setSupplierNames([]);
+    }
+  };
   const navigate = useNavigate();
   const [showGetItem, setShowGetItem] = useState(false);
   // Supplier modal state only
@@ -77,9 +102,10 @@ function InventoryManagerDashboard() {
     setLoadingItems(false);
   };
 
-  // Fetch items on mount and after add
+  // Fetch items and supplier names on mount
   useEffect(() => {
     fetchItems();
+    fetchSupplierNames();
   }, []);
 
   const handleEdit = (item) => {
@@ -215,6 +241,12 @@ function InventoryManagerDashboard() {
           </div>
           <div
             style={{ padding: '8px 24px', cursor: 'pointer', fontWeight: 500, fontSize: 15, color: '#fff' }}
+            onClick={() => setShowSummary(true)}
+          >
+            Summary
+          </div>
+          <div
+            style={{ padding: '8px 24px', cursor: 'pointer', fontWeight: 500, fontSize: 15, color: '#fff' }}
             onClick={() => setShowSupplierModal(true)}
           >
             Supplier
@@ -341,9 +373,61 @@ function InventoryManagerDashboard() {
         <InventoryNewItemAdd
           open={showAddItem}
           onClose={handleCloseAddEdit}
-          onSuccess={fetchItems}
+          onSuccess={() => { fetchItems(); fetchSupplierNames(); }}
           editItem={editItem}
+          supplierNames={supplierNames}
         />
+
+        {/* Summary Popup */}
+        {showSummary && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000
+          }}>
+            <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 900, boxShadow: '0 2px 16px rgba(0,0,0,0.2)', maxHeight: '80vh', overflowY: 'auto' }}>
+              <h2 style={{ marginBottom: 24 }}>Inventory Summary</h2>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
+                <thead>
+                  <tr style={{ background: '#f0f0f0' }}>
+                    <th style={{ padding: 8, border: '1px solid #ddd' }}>Name</th>
+                    <th style={{ padding: 8, border: '1px solid #ddd' }}>Category</th>
+                    <th style={{ padding: 8, border: '1px solid #ddd' }}>Create On Date</th>
+                    <th style={{ padding: 8, border: '1px solid #ddd' }}>Issue Stock</th>
+                    <th style={{ padding: 8, border: '1px solid #ddd' }}>Total Stock</th>
+                    <th style={{ padding: 8, border: '1px solid #ddd' }}>Issue Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Example: map over allItems or another data source for summary */}
+                  {allItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: 16, color: '#888' }}>No data</td>
+                    </tr>
+                  ) : (
+                    allItems.map((item, idx) => (
+                      <tr key={idx}>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.name}</td>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.category}</td>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.createdAt ? item.createdAt.substring(0, 10) : ''}</td>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.issueStock || '-'}</td>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.stock}</td>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.issueDate ? item.issueDate.substring(0, 10) : '-'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  onClick={() => setShowSummary(false)}
+                  style={{ background: '#7f7fff', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 32px', fontSize: 16, cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Expired Items Modal */}
         {showExpiredModal && (
@@ -353,6 +437,36 @@ function InventoryManagerDashboard() {
           }}>
             <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 900, boxShadow: '0 2px 16px rgba(0,0,0,0.2)', maxHeight: '80vh', overflowY: 'auto' }}>
               <h2 style={{ marginBottom: 24 }}>Expired Items</h2>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <button
+                  style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
+                  onClick={() => {
+                    const doc = new jsPDF('l', 'pt', 'a4');
+                    doc.setFontSize(18);
+                    doc.text('Expired Inventory Items', 40, 40);
+                    const head = [[
+                      'Name', 'Category', 'Stock', 'Expiry', 'Supplier'
+                    ]];
+                    const body = (expiredItems || []).map(item => [
+                      item.name,
+                      item.category,
+                      item.stock,
+                      item.expiry ? item.expiry.substring(0, 10) : '',
+                      item.supplier
+                    ]);
+                    autoTable(doc, {
+                      head,
+                      body,
+                      startY: 60,
+                      styles: { fontSize: 10 },
+                      headStyles: { fillColor: [255, 127, 127] }
+                    });
+                    doc.save('expired-inventory-list.pdf');
+                  }}
+                >
+                  Download PDF
+                </button>
+              </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
                 <thead>
                   <tr style={{ background: '#f0f0f0' }}>

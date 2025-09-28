@@ -30,8 +30,16 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
 
   if (!open) return null;
 
+  // Allow only letters for name and category
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'name' || name === 'category') {
+      // Only allow letters and spaces
+      const lettersOnly = value.replace(/[^A-Za-z ]/g, '');
+      setForm({ ...form, [name]: lettersOnly });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -80,12 +88,12 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label>Product Name<br/>
-              <input name="name" value={form.name} onChange={handleChange} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              <input name="name" value={form.name} onChange={handleChange} required style={{ width: '100%', padding: 8, marginTop: 4 }} pattern="[A-Za-z ]+" title="Only letters allowed" />
             </label>
           </div>
           <div style={{ marginBottom: 16 }}>
             <label>Product Category<br/>
-              <input name="category" value={form.category} onChange={handleChange} required style={{ width: '100%', padding: 8, marginTop: 4 }} />
+              <input name="category" value={form.category} onChange={handleChange} required style={{ width: '100%', padding: 8, marginTop: 4 }} pattern="[A-Za-z ]+" title="Only letters allowed" />
             </label>
           </div>
           <div style={{ marginBottom: 16 }}>
