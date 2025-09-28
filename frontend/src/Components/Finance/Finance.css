@@ -1,6 +1,6 @@
 .finance-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgb(255, 255, 255);
     display: flex;
     flex-direction: column;
   }
@@ -36,7 +36,7 @@
   }
   
   .finance-header h1 {
-    color: #ffffff;
+    color: #6476ff;
     font-size: 3rem;
     margin-bottom: 15px;
     font-weight: 700;
@@ -44,7 +44,7 @@
   }
   
   .finance-header p {
-    color: rgba(255, 255, 255, 0.9);
+    color: #8a97fd;
     font-size: 1.2rem;
     font-weight: 300;
   }
@@ -266,7 +266,7 @@
 }
 
 .analytics-title {
-  color: white;
+  color: #6476ff;
   font-size: 2.2rem;
   font-weight: 700;
   text-align: center;
@@ -317,7 +317,7 @@
 }
 
 .kpi-title {
-  color: white;
+  color: #6476ff;
   font-size: 1.8rem;
   font-weight: 600;
   text-align: center;

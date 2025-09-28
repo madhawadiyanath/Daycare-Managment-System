@@ -14,6 +14,8 @@ const staffRoutes = require("./routes/staffRoute");
 const inventoryManagerRoutes = require("./routes/inventoryManagerRoute");
 const childRequestRoutes = require("./routes/childRequestRoute");
 const childRoutes = require("./routes/childRoute");
+const calendarRoutes = require("./routes/calendarEventRoute");
+const learningActivityRoutes = require("./routes/learningActivityRoute");
 
 const supplierDropdownRoute = require('./routes/supplierDropdownRoute');
 
@@ -41,6 +43,8 @@ app.use("/admin/staff", staffRoutes);
 app.use("/admin/inventory-managers", inventoryManagerRoutes);
 app.use("/child-requests", childRequestRoutes);
 app.use("/children", childRoutes);
+app.use("/calendar", calendarRoutes);
+app.use("/learning-activities", learningActivityRoutes);
 app.use('/admin/supplier-dropdown', supplierDropdownRoute);
 app.use('/admin/suppliers', supplierRoute);
 app.use('/admin/issue-summary', issueSummaryRoute);
