@@ -1,13 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./ChildcareDashboard.css";
 import Nav from "../Nav/Nav";
 import CreateChild from "./CreateChild";
 import ViewChildren from "./ViewChildren";
-import UpdateChild from "./UpdateChild";
-import DeleteChild from "./DeleteChild";
+// Removed UpdateChild and DeleteChild sections
+import { useNavigate } from "react-router-dom";
+import Calendar from "./Calendar";
 
 export default function ChildcareDashboard() {
   const [activeSection, setActiveSection] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Require parent login to access ChildcareDashboard
+    const parentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!parentUser) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   return (
     <div>
@@ -18,8 +28,7 @@ export default function ChildcareDashboard() {
         <div className="button-container">
           <button onClick={() => setActiveSection("create")}>➕ Create Child Record</button>
           <button onClick={() => setActiveSection("view")}>📖 View Records</button>
-          <button onClick={() => setActiveSection("update")}>✏️ Update Progress</button>
-          <button onClick={() => setActiveSection("delete")}>🗑️ Delete Records</button>
+          <button onClick={() => setActiveSection("calendar")}>📅 Calendar</button>
         </div>
 
         <div className="section-container">
@@ -33,14 +42,9 @@ export default function ChildcareDashboard() {
               <ViewChildren/>
             </div>
           )}
-          {activeSection === "update" && (
+          {activeSection === "calendar" && (
             <div className="section fade-in">
-              <UpdateChild/>
-            </div>
-          )}
-          {activeSection === "delete" && (
-            <div className="section fade-in">
-              <DeleteChild/>
+              <Calendar onDateSelect={(date) => console.log('Selected date:', date)} />
             </div>
           )}
         </div>

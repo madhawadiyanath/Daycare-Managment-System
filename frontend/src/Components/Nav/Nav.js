@@ -2,6 +2,7 @@ import React from 'react'
 import './Nav.css';
 import {Link} from "react-router-dom";
 function Nav() {
+  const parentUser = JSON.parse(localStorage.getItem('user') || 'null');
   return (
     <div>
     <header class="header">
@@ -35,7 +36,7 @@ function Nav() {
                             <a href="#" class="dropdown-link">Attendance Tracking</a>
                         </li>
                         <li class="dropdown-item">
-                            <a href="#" class="dropdown-link">Learning & Assessment</a>
+                            <Link to="/learning-activities" class="dropdown-link">Learning & Assessment</Link>
                         </li>
                         <li class="dropdown-item">
                             <Link to="/mainfina" class="dropdown-link" >Billing & Finance</Link>
@@ -45,12 +46,22 @@ function Nav() {
                 <li class="nav-item">
                     <Link to="/AboutUs" class="nav-link">About</Link>
                 </li>
-                <li class="nav-item">
-                    <Link to="/login" class="nav-link login-btn">Login</Link>
-                </li>
-                <li class="nav-item">
-                    <Link to="/JoinUs" class="nav-link join-btn" >Join Us</Link>
-                </li>
+                {parentUser ? (
+                  <>
+                    <li class="nav-item">
+                      <Link to="/parent/profile" class="nav-link profile-btn" title="Profile">👤 {parentUser.name || parentUser.username || 'Profile'}</Link>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li class="nav-item">
+                        <Link to="/login" class="nav-link login-btn">Login</Link>
+                    </li>
+                    <li class="nav-item">
+                        <Link to="/JoinUs" class="nav-link join-btn" >Join Us</Link>
+                    </li>
+                  </>
+                )}
             </ul>
         </nav>
 
