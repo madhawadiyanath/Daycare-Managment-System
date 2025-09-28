@@ -47,14 +47,15 @@ function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-branding">
-          <img src={logo} className="footer-logo" alt="Little Nest" />
+          
+          <span className="footer-brand-name">Little Nest</span>
         </div>
         <ul className="legal-links">
           <li><a href="#">Privacy Policy</a></li>
           <li><a href="#">Terms & Conditions</a></li>
           <li><a href="#">Accessibility Statement</a></li>
         </ul>
-        <div className="copyright"> {year} Little Nest. All rights reserved.</div>
+        <div className="copyright">© {year} Little Nest. All rights reserved.</div>
       </div>
     </footer>
   );
