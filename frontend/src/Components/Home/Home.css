@@ -1151,11 +1151,18 @@ body {
 /* CTA Section Enhancement */
 .cta-section {
     padding: 4rem 0;
-    background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+    background: #F5C542; /* match navbar Join Us button color */
     border-radius: 20px;
     margin: 3rem 0;
     text-align: center;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Limit max width of inner content and center it */
+.cta-section .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.25rem; /* small side padding for small screens */
 }
 
 .cta-section h2 {
