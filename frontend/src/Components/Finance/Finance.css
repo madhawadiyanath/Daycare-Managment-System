@@ -36,7 +36,7 @@
   }
   
   .finance-header h1 {
-    color: #6476ff;
+    color: #343d82;
     font-size: 3rem;
     margin-bottom: 15px;
     font-weight: 700;
@@ -44,7 +44,7 @@
   }
   
   .finance-header p {
-    color: #8a97fd;
+    color: #343d82;
     font-size: 1.2rem;
     font-weight: 300;
   }
@@ -266,7 +266,7 @@
 }
 
 .analytics-title {
-  color: #6476ff;
+  color: #343d82;
   font-size: 2.2rem;
   font-weight: 700;
   text-align: center;
@@ -317,7 +317,7 @@
 }
 
 .kpi-title {
-  color: #6476ff;
+  color: #343d82;
   font-size: 1.8rem;
   font-weight: 600;
   text-align: center;
