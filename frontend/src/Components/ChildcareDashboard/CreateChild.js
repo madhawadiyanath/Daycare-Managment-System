@@ -13,6 +13,22 @@ export default function CreateChild() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Special validation for name field - only allow letters and spaces
+    if (name === 'name') {
+      const filteredValue = value.replace(/[^A-Za-z\s]/g, '');
+      setChildData({ ...childData, [name]: filteredValue });
+      return;
+    }
+    
+    // Special validation for age field - minimum age is 1
+    if (name === 'age') {
+      const ageValue = parseInt(value) || 0;
+      if (ageValue < 1 && value !== '') {
+        return; // Don't update if age is less than 1
+      }
+    }
+    
     setChildData({ ...childData, [name]: value });
   };
 
@@ -78,6 +94,13 @@ export default function CreateChild() {
           name="name"
           value={childData.name}
           onChange={handleChange}
+          onKeyPress={(e) => {
+            // Prevent typing invalid characters
+            const char = String.fromCharCode(e.which);
+            if (!/[A-Za-z\s]/.test(char)) {
+              e.preventDefault();
+            }
+          }}
           placeholder="Enter child name"
           required
         />
@@ -88,6 +111,7 @@ export default function CreateChild() {
           name="age"
           value={childData.age}
           onChange={handleChange}
+          min="1"
           placeholder="Enter age"
           required
         />
@@ -97,7 +121,6 @@ export default function CreateChild() {
           <option value="">Select gender</option>
           <option value="Male">Boy</option>
           <option value="Female">Girl</option>
-          <option value="Other">Other</option>
         </select>
 
         <div className="info-text" style={{ marginTop: 8, marginBottom: 12, color: '#555' }}>
