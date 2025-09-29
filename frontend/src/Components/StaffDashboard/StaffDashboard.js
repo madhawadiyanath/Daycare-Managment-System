@@ -27,6 +27,8 @@ function StaffDashboard() {
   const [evError, setEvError] = useState('');
   const [evEditingId, setEvEditingId] = useState(null);
   const [evEditForm, setEvEditForm] = useState({ title: '', date: '', description: '', childId: '' });
+  // Active section state
+  const [activeSection, setActiveSection] = useState('pending');
 
   async function fetchEventsForMonth(baseDate = new Date()) {
     try {
@@ -103,35 +105,223 @@ function StaffDashboard() {
   };
 
   return (
-    <div className="s-dashboard">
-      <div className="s-header">
-        <div>
-          <h1>Staff Dashboard</h1>
-          <p className="subtitle">Welcome{staff ? `, ${staff.name || staff.username}` : ''}</p>
-        </div>
-
-        {/* Manage Calendar Events moved below Add Calendar Event */}
-
-        {staff && (
-          <div className="s-profile">
-            <span className="username">{staff.username}</span>
-            <span className="email">{staff.email}</span>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%)' }}>
+      {/* Modern Header */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        padding: '1.5rem 2rem',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50
+      }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: '800',
+              background: 'linear-gradient(135deg, #1e3a8a 0%, #581c87 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: 0
+            }}>
+              Staff Dashboard
+            </h1>
+            <p style={{ color: '#64748b', margin: '0.25rem 0 0 0' }}>
+              Welcome{staff ? `, ${staff.name || staff.username}` : ''}
+            </p>
           </div>
-        )}
+          
+          {staff && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '1rem',
+              background: 'rgba(30, 58, 138, 0.1)',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '12px'
+            }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: '600', color: '#1e3a8a' }}>{staff.username}</div>
+                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{staff.email}</div>
+              </div>
+              <Link 
+                to="/login" 
+                style={{
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Logout
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="grid">
-        {/* Quick Links */}
-        <div className="card">
-          <h3>Quick Links</h3>
-          <div className="actions">
-            <Link to="/goHome" className="btn">Home</Link>
-            <Link to="/ChildcareDashboard" className="btn">Childcare</Link>
+      <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Navigation Tabs */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '2rem',
+          justifyContent: 'center'
+        }}>
+          <div
+            onClick={() => setActiveSection('pending')}
+            style={{
+              background: activeSection === 'pending' 
+                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              padding: '1rem 1.5rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: activeSection === 'pending'
+                ? '0 10px 25px -5px rgba(16, 185, 129, 0.25)'
+                : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              transform: activeSection === 'pending' ? 'translateY(-2px)' : 'translateY(0)',
+              color: activeSection === 'pending' ? 'white' : '#1f2937',
+              textAlign: 'center',
+              minWidth: '180px'
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📋</div>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: '700', margin: 0 }}>
+              Pending Requests
+            </h3>
+          </div>
+
+          <div
+            onClick={() => setActiveSection('calendar')}
+            style={{
+              background: activeSection === 'calendar' 
+                ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              padding: '1rem 1.5rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: activeSection === 'calendar'
+                ? '0 10px 25px -5px rgba(245, 158, 11, 0.25)'
+                : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              transform: activeSection === 'calendar' ? 'translateY(-2px)' : 'translateY(0)',
+              color: activeSection === 'calendar' ? 'white' : '#1f2937',
+              textAlign: 'center',
+              minWidth: '180px'
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📅</div>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: '700', margin: 0 }}>
+              Calendar Events
+            </h3>
+          </div>
+
+          <div
+            onClick={() => setActiveSection('children')}
+            style={{
+              background: activeSection === 'children' 
+                ? 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              padding: '1rem 1.5rem',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: activeSection === 'children'
+                ? '0 10px 25px -5px rgba(59, 130, 246, 0.25)'
+                : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              transform: activeSection === 'children' ? 'translateY(-2px)' : 'translateY(0)',
+              color: activeSection === 'children' ? 'white' : '#1f2937',
+              textAlign: 'center',
+              minWidth: '180px'
+            }}
+          >
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>👶</div>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: '700', margin: 0 }}>
+              Child Details
+            </h3>
           </div>
         </div>
 
-        {/* Pending Child Requests */}
-        <div className="card full-width">
+        {/* Modern Content Container */}
+        {activeSection && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '24px',
+            padding: '2rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            animation: 'fadeIn 0.5s ease-in-out'
+          }}>
+            {/* Quick Links */}
+            <div style={{
+              background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              marginBottom: '2rem',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>Quick Navigation</h3>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link 
+                  to="/goHome" 
+                  style={{
+                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  🏠 Home
+                </Link>
+                <Link 
+                  to="/ChildcareDashboard" 
+                  style={{
+                    background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  👶 Childcare
+                </Link>
+              </div>
+            </div>
+
+            {/* Conditional Content Based on Active Section */}
+            {activeSection === 'pending' && (
+              <div>
+                {/* Pending Child Requests */}
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}>
           <div className="list-header">
             <h3>Pending Child Requests</h3>
             <button className="btn btn-secondary" type="button" onClick={fetchPending}>Refresh</button>
@@ -653,7 +843,187 @@ function StaffDashboard() {
             </form>
           )}
         </div>
+              </div>
+            )}
+
+            {/* Calendar Section */}
+            {activeSection === 'calendar' && (
+              <div>
+                {/* Add Calendar Event */}
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>Add Calendar Event</h3>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setEvtError('');
+                      setEvtSuccess('');
+                      if (!eventForm.title.trim() || !eventForm.date) {
+                        setEvtError('Title and Date are required');
+                        return;
+                      }
+                      setEvtSubmitting(true);
+                      try {
+                        const payload = {
+                          title: eventForm.title.trim(),
+                          date: eventForm.date,
+                          description: eventForm.description?.trim?.() || '',
+                          childId: eventForm.childId?.trim?.() || undefined,
+                          createdBy: staff?._id,
+                        };
+                        const res = await axios.post('http://localhost:5000/calendar/events', payload);
+                        if (res.data?.success) {
+                          setEvtSuccess('Event created');
+                          setEventForm({ title: '', date: '', description: '', childId: '' });
+                          await fetchEventsForMonth(new Date(payload.date));
+                        } else {
+                          setEvtError(res.data?.message || 'Failed to create event');
+                        }
+                      } catch (err) {
+                        setEvtError(err?.response?.data?.message || 'Failed to create event');
+                      } finally {
+                        setEvtSubmitting(false);
+                      }
+                    }}
+                  >
+                    {evtError && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{evtError}</div>}
+                    {evtSuccess && <div style={{ color: '#10b981', marginBottom: '1rem' }}>{evtSuccess}</div>}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Title</label>
+                        <input
+                          type="text"
+                          value={eventForm.title}
+                          onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                          placeholder="Event title"
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Date</label>
+                        <input
+                          type="date"
+                          value={eventForm.date}
+                          onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Description</label>
+                        <input
+                          type="text"
+                          value={eventForm.description}
+                          onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                          placeholder="Optional details"
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Child ID (optional)</label>
+                        <input
+                          type="text"
+                          value={eventForm.childId}
+                          onChange={(e) => setEventForm({ ...eventForm, childId: e.target.value })}
+                          placeholder="Link to a child"
+                          style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={evtSubmitting}
+                      style={{
+                        background: evtSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'white',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontWeight: '500',
+                        marginTop: '1rem',
+                        cursor: evtSubmitting ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {evtSubmitting ? 'Creating...' : 'Create Event'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Children Section */}
+            {activeSection === 'children' && (
+              <div>
+                {/* View Child Details */}
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>View Child Details</h3>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <input
+                      type="text"
+                      placeholder="Enter Child ID"
+                      value={childIdInput}
+                      onChange={(e) => setChildIdInput(e.target.value)}
+                      style={{ 
+                        flex: 1, 
+                        padding: '0.75rem', 
+                        borderRadius: '8px', 
+                        border: '1px solid #d1d5db' 
+                      }}
+                    />
+                    <button 
+                      onClick={lookupChild} 
+                      disabled={childLoading}
+                      style={{
+                        background: childLoading ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        color: 'white',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontWeight: '500',
+                        cursor: childLoading ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {childLoading ? 'Searching...' : 'Search'}
+                    </button>
+                  </div>
+                  {childError && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>{childError}</div>}
+                  {childDetails && (
+                    <div style={{ 
+                      background: '#f8fafc', 
+                      borderRadius: '12px', 
+                      padding: '1rem',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <p><strong>Child ID:</strong> {childDetails.childId}</p>
+                      <p><strong>Name:</strong> {childDetails.name}</p>
+                      <p><strong>Age:</strong> {childDetails.age}</p>
+                      <p><strong>Gender:</strong> {childDetails.gender}</p>
+                      <p><strong>Parent:</strong> {childDetails.parent}</p>
+                      <p><strong>Health Notes:</strong> {childDetails.healthNotes || '-'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
