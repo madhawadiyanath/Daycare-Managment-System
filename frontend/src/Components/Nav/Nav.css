@@ -4,6 +4,7 @@
     list-style: none;
     gap: 1rem;
     align-items: center;
+    width: 100%;
 }
 
 .nav-item {
@@ -26,3 +27,29 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
 }
+
+/* Push the first action item (Login/Profile) to the right */
+.nav-actions { margin-left: auto; display: flex; }
+
+/* Shared action button base so Login/Join are same size */
+.nav-action-btn {
+    padding: 0.55rem 1.15rem;
+    border-radius: 999px;
+    font-weight: 600;
+    line-height: 1; /* consistent height */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px; /* ensures same width feel on short labels */
+    text-align: center;
+}
+
+/* Variants */
+.login-btn { background: #4A90E2; color: #fff; }
+.login-btn:hover { background: #357ABD; }
+
+.join-btn { background: #F5C542; color: #333; }
+.join-btn:hover { background: #E6B73A; }
+
+.profile-btn { background: #f3f7ff; color: #285ea8; border: 1px solid rgba(40,94,168,.25); }
+.profile-btn:hover { background: #e7efff; }

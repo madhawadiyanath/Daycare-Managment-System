@@ -48,17 +48,17 @@ function Nav() {
                 </li>
                 {parentUser ? (
                   <>
-                    <li class="nav-item">
-                      <Link to="/parent/profile" class="nav-link profile-btn" title="Profile">👤 {parentUser.name || parentUser.username || 'Profile'}</Link>
+                    <li class="nav-item nav-actions">
+                      <Link to="/parent/profile" class="nav-link nav-action-btn profile-btn" title="Profile">👤 {parentUser.name || parentUser.username || 'Profile'}</Link>
                     </li>
                   </>
                 ) : (
                   <>
-                    <li class="nav-item">
-                        <Link to="/login" class="nav-link login-btn">Login</Link>
+                    <li class="nav-item nav-actions">
+                        <Link to="/login" class="nav-link nav-action-btn login-btn">Login</Link>
                     </li>
                     <li class="nav-item">
-                        <Link to="/JoinUs" class="nav-link join-btn" >Join Us</Link>
+                        <Link to="/JoinUs" class="nav-link nav-action-btn join-btn" >Join Us</Link>
                     </li>
                   </>
                 )}
