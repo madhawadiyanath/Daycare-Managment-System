@@ -6,6 +6,7 @@ import ViewChildren from "./ViewChildren";
 // Removed UpdateChild and DeleteChild sections
 import { useNavigate } from "react-router-dom";
 import Calendar from "./Calendar";
+import Chatbot from "./Chatbot";
 
 export default function ChildcareDashboard() {
   const [activeSection, setActiveSection] = useState("");
@@ -29,6 +30,7 @@ export default function ChildcareDashboard() {
           <button onClick={() => setActiveSection("create")}>➕ Create Child Record</button>
           <button onClick={() => setActiveSection("view")}>📖 View Records</button>
           <button onClick={() => setActiveSection("calendar")}>📅 Calendar</button>
+          <button onClick={() => setActiveSection("chatbot")}>🤖 Ask Assistant</button>
         </div>
 
         <div className="section-container">
@@ -45,6 +47,11 @@ export default function ChildcareDashboard() {
           {activeSection === "calendar" && (
             <div className="section fade-in">
               <Calendar onDateSelect={(date) => console.log('Selected date:', date)} />
+            </div>
+          )}
+          {activeSection === "chatbot" && (
+            <div className="section fade-in">
+              <Chatbot />
             </div>
           )}
         </div>
