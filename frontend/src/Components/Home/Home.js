@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Nav from "../Nav/Nav";
+import Footer from "../Footer/Footer";
 import './Home.css';
 
 function Home() {
@@ -124,17 +125,17 @@ function Home() {
             <h2 className="section-title">What We Offer</h2>
             <div className="features-grid">
               <div className="feature-card" style={{animationDelay: '0.1s'}}>
-                <div className="feature-icon">🧸</div>
+                <div className="feature-icon"> <img src="https://tse4.mm.bing.net/th/id/OIP.BU-uyxImxbyRijfNk8VHGgHaFi?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Children engaged in creative activities" /></div>
                 <h3>Safe Environment</h3>
                 <p>A secure and nurturing space for children to learn and play.</p>
               </div>
               <div className="feature-card" style={{animationDelay: '0.3s'}}>
-                <div className="feature-icon">🎨</div>
+                <div className="feature-icon"><img src="https://static.wixstatic.com/media/0b8c1d_943eeadde6024a2797de6eeec4ef8897~mv2.jpg/v1/fill/w_1000,h_630,al_c,q_85,usm_0.66_1.00_0.01/0b8c1d_943eeadde6024a2797de6eeec4ef8897~mv2.jpg" alt="Children engaged in creative activities" /></div>
                 <h3>Creative Learning</h3>
                 <p>Engaging activities that spark imagination and creativity.</p>
               </div>
               <div className="feature-card" style={{animationDelay: '0.5s'}}>
-                <div className="feature-icon">👪</div>
+                <div className="feature-icon"><img src="https://th.bing.com/th/id/R.a360d7e7e8039ee7d204e181dc35dc4b?rik=64O79dG1kvzmbQ&pid=ImgRaw&r=0" alt="Children engaged in creative activities" /></div>
                 <h3>Family Community</h3>
                 <p>Building connections between families and caregivers.</p>
               </div>
@@ -348,6 +349,7 @@ function Home() {
           </div>
         </section>
       </main>
+      <Footer/>
     </div>
   )
 }
