@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './AdminDashboard.css';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+// Reuse the same logo used by ExpenseDetails for consistent branding
+const logoImage = require('../../assets/WhatsApp Image 2025-08-05 at 19.02.34_b673857a - Copy.jpg');
 
 function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -41,6 +45,10 @@ function AdminDashboard() {
   const [imSubmitting, setImSubmitting] = useState(false);
   const [imEditingId, setImEditingId] = useState(null);
   const [imEditForm, setImEditForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
+
+  // Input sanitizers: only letters/spaces for names, only digits for phones
+  const onlyLetters = (val) => val.replace(/[^a-zA-Z\s]/g, '');
+  const onlyDigits = (val) => val.replace(/\D/g, '');
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -131,6 +139,146 @@ function AdminDashboard() {
 
   const admin = JSON.parse(localStorage.getItem('admin') || 'null');
 
+  // Generate Overview PDF (Finance Managers, Teachers, Staff, Inventory Managers)
+  const downloadAdminPDF = async () => {
+    try {
+      // Fetch all lists to ensure freshest data
+      const [fmRes, tRes, sRes, imRes] = await Promise.all([
+        axios.get('http://localhost:5000/admin/finance-managers'),
+        axios.get('http://localhost:5000/admin/teachers'),
+        axios.get('http://localhost:5000/admin/staff'),
+        axios.get('http://localhost:5000/admin/inventory-managers')
+      ]);
+
+      const fm = fmRes.data?.data || [];
+      const teachers = tRes.data?.data || [];
+      const staff = sRes.data?.data || [];
+      const inventory = imRes.data?.data || [];
+
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Decorative top line
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(3);
+      doc.line(10, 10, pageWidth - 10, 10);
+
+      // Logo
+      try {
+        doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+      } catch (e) {
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 15, 30, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('LITTLE', 30, 28, { align: 'center' });
+        doc.text('NEST', 30, 35, { align: 'center' });
+      }
+
+      // Company name and subtitle
+      doc.setFontSize(24);
+      doc.setTextColor(30, 58, 138);
+      doc.text('LITTLE NEST DAYCARE', 55, 28);
+
+      doc.setFontSize(12);
+      doc.setTextColor(70, 130, 180);
+      doc.text('Quality Childcare & Early Learning Center', 55, 36);
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('📍 123 Childcare Lane, City, State 12345 | 📞 (555) 123-4567', 55, 42);
+      doc.text('✉️ info@littlenest.com | 🌐 www.littlenest.com', 55, 46);
+
+      // Report title block
+      doc.setFillColor(245, 250, 255);
+      doc.rect(10, 55, pageWidth - 20, 25, 'F');
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(2);
+      doc.rect(10, 55, pageWidth - 20, 25);
+      doc.setDrawColor(70, 130, 180);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 57, pageWidth - 24, 21);
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text('ADMIN OVERVIEW REPORT', pageWidth / 2, 70, { align: 'center' });
+
+      // Metadata
+      const now = new Date();
+      doc.setFillColor(250, 252, 255);
+      doc.rect(10, 85, pageWidth - 20, 18, 'F');
+      doc.setDrawColor(200, 220, 240);
+      doc.setLineWidth(0.5);
+      doc.rect(10, 85, pageWidth - 20, 18);
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Report Generated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`, 15, 92);
+      doc.text(`Managers: ${fm.length}  |  Teachers: ${teachers.length}  |  Staff: ${staff.length}  |  Inventory Managers: ${inventory.length}`, 15, 97);
+
+      let currentY = 110;
+      const makeSection = (title, head, rows) => {
+        // Section title
+        doc.setFontSize(14);
+        doc.setTextColor(30, 58, 138);
+        doc.text(title, 12, currentY - 4);
+
+        autoTable(doc, {
+          head: [head],
+          body: rows,
+          startY: currentY,
+          theme: 'grid',
+          alternateRowStyles: { fillColor: [248, 251, 255] },
+          headStyles: {
+            fillColor: [30, 58, 138],
+            textColor: [255, 255, 255],
+            fontSize: 11,
+            fontStyle: 'bold',
+            halign: 'center'
+          },
+          bodyStyles: {
+            fontSize: 9,
+            lineColor: [180, 200, 220],
+            lineWidth: 0.3
+          },
+          styles: {
+            lineColor: [70, 130, 180],
+            lineWidth: 0.5,
+            cellPadding: 4
+          },
+          didDrawPage: (data) => {},
+        });
+        currentY = doc.lastAutoTable.finalY + 12;
+      };
+
+      // Prepare data
+      const fmRows = fm.map(m => [m.name || 'N/A', m.username || 'N/A', m.email || 'N/A', m.phone || '-']);
+      const tRows = teachers.map(t => [t.name || 'N/A', t.username || 'N/A', t.email || 'N/A', t.phone || '-', t.subject || '-']);
+      const sRows = staff.map(s => [s.name || 'N/A', s.username || 'N/A', s.email || 'N/A', s.phone || '-', s.role || '-']);
+      const imRows = inventory.map(m => [m.name || 'N/A', m.username || 'N/A', m.email || 'N/A', m.phone || '-']);
+
+      // Sections (split across pages automatically by autotable)
+      makeSection('Finance Managers', ['Name', 'Username', 'Email', 'Phone'], fmRows);
+      makeSection('Teachers', ['Name', 'Username', 'Email', 'Phone', 'Subject'], tRows);
+      makeSection('Staff', ['Name', 'Username', 'Email', 'Phone', 'Role'], sRows);
+      makeSection('Inventory Managers', ['Name', 'Username', 'Email', 'Phone'], imRows);
+
+      // Footer
+      const footerY = pageHeight - 20;
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(1);
+      doc.line(10, footerY, pageWidth - 10, footerY);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Little Nest Daycare - Admin Overview', 15, footerY + 8);
+      doc.text('Generated by: Daycare Management System', pageWidth - 15, footerY + 8, { align: 'right' });
+
+      doc.save(`Admin-Overview-Report-${now.toISOString().split('T')[0]}.pdf`);
+    } catch (err) {
+      console.error('Error generating admin PDF:', err);
+      alert('Error generating PDF. Please try again.');
+    }
+  };
+
   const TabButton = ({ id, label }) => (
     <button
       className={`tab-btn ${activeTab === id ? 'active' : ''}`}
@@ -172,32 +320,37 @@ function AdminDashboard() {
             {loading && <div className="card">Loading...</div>}
             {error && <div className="card error">{error}</div>}
             {!loading && !error && (
-              <div className="grid">
-                <div className="card stat">
-                  <h3>Total Users</h3>
-                  <p>{data?.totalUsers ?? '-'}</p>
+              <>
+                <div className="actions" style={{ marginBottom: 12 }}>
+                  <button className="btn" type="button" onClick={downloadAdminPDF}>Download Overview PDF</button>
                 </div>
-                <div className="card stat">
-                  <h3>Total Transactions</h3>
-                  <p>{data?.totalTransactions ?? '-'}</p>
+                <div className="grid">
+                  <div className="card stat">
+                    <h3>Total Users</h3>
+                    <p>{data?.totalUsers ?? '-'}</p>
+                  </div>
+                  <div className="card stat">
+                    <h3>Total Transactions</h3>
+                    <p>{data?.totalTransactions ?? '-'}</p>
+                  </div>
+                  <div className="card stat">
+                    <h3>Total Revenue</h3>
+                    <p>{data?.totalRevenue ?? '-'}</p>
+                  </div>
+                  <div className="card">
+                    <h3>Recent Activities</h3>
+                    {data?.recentActivities?.length ? (
+                      <ul>
+                        {data.recentActivities.map((a, i) => (
+                          <li key={i}>{a}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No recent activities</p>
+                    )}
+                  </div>
                 </div>
-                <div className="card stat">
-                  <h3>Total Revenue</h3>
-                  <p>{data?.totalRevenue ?? '-'}</p>
-                </div>
-                <div className="card">
-                  <h3>Recent Activities</h3>
-                  {data?.recentActivities?.length ? (
-                    <ul>
-                      {data.recentActivities.map((a, i) => (
-                        <li key={i}>{a}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No recent activities</p>
-                  )}
-                </div>
-              </div>
+              </>
             )}
           </div>
         )}
@@ -246,7 +399,7 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={fmForm.name}
-                      onChange={(e) => setFmForm({ ...fmForm, name: e.target.value })}
+                      onChange={(e) => setFmForm({ ...fmForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
                   </div>
@@ -282,7 +435,8 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={fmForm.phone}
-                      onChange={(e) => setFmForm({ ...fmForm, phone: e.target.value })}
+                      onChange={(e) => setFmForm({ ...fmForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
                   </div>
@@ -337,7 +491,7 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={editForm.name}
-                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                    onChange={(e) => setEditForm({ ...editForm, name: onlyLetters(e.target.value) })}
                                   />
                                 </td>
                                 <td>
@@ -361,7 +515,8 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={editForm.phone || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                    onChange={(e) => setEditForm({ ...editForm, phone: onlyDigits(e.target.value) })}
+                                    inputMode="numeric"
                                   />
                                 </td>
                                 <td className="actions-cell">
@@ -514,7 +669,7 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={tForm.name}
-                      onChange={(e) => setTForm({ ...tForm, name: e.target.value })}
+                      onChange={(e) => setTForm({ ...tForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
                   </div>
@@ -550,7 +705,8 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={tForm.phone}
-                      onChange={(e) => setTForm({ ...tForm, phone: e.target.value })}
+                      onChange={(e) => setTForm({ ...tForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
                   </div>
@@ -611,7 +767,7 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={tEditForm.name}
-                                    onChange={(e) => setTEditForm({ ...tEditForm, name: e.target.value })}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, name: onlyLetters(e.target.value) })}
                                   />
                                 </td>
                                 <td>
@@ -635,7 +791,8 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={tEditForm.phone || ''}
-                                    onChange={(e) => setTEditForm({ ...tEditForm, phone: e.target.value })}
+                                    onChange={(e) => setTEditForm({ ...tEditForm, phone: onlyDigits(e.target.value) })}
+                                    inputMode="numeric"
                                   />
                                 </td>
                                 <td>
@@ -784,9 +941,10 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={sForm.name}
-                      onChange={(e) => setSForm({ ...sForm, name: e.target.value })}
+                      onChange={(e) => setSForm({ ...sForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
+
                   </div>
                   <div className="col">
                     <label>Email</label>
@@ -796,6 +954,7 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, email: e.target.value })}
                       placeholder="email@example.com"
                     />
+
                   </div>
                   <div className="col">
                     <label>Username</label>
@@ -805,6 +964,7 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, username: e.target.value })}
                       placeholder="Unique username"
                     />
+
                   </div>
                   <div className="col">
                     <label>Password</label>
@@ -814,15 +974,18 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, password: e.target.value })}
                       placeholder="Min 6 characters"
                     />
+
                   </div>
                   <div className="col">
                     <label>Phone</label>
                     <input
                       type="text"
                       value={sForm.phone}
-                      onChange={(e) => setSForm({ ...sForm, phone: e.target.value })}
+                      onChange={(e) => setSForm({ ...sForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
+
                   </div>
                   <div className="col">
                     <label>Role</label>
@@ -832,6 +995,7 @@ function AdminDashboard() {
                       onChange={(e) => setSForm({ ...sForm, role: e.target.value })}
                       placeholder="e.g., Assistant, Cleaner"
                     />
+
                   </div>
                 </div>
                 {sError && <div className="form-error">{sError}</div>}
@@ -877,7 +1041,7 @@ function AdminDashboard() {
                             {sEditingId === s._id ? (
                               <>
                                 <td>
-                                  <input className="table-input" type="text" value={sEditForm.name} onChange={(e) => setSEditForm({ ...sEditForm, name: e.target.value })} />
+                                  <input className="table-input" type="text" value={sEditForm.name} onChange={(e) => setSEditForm({ ...sEditForm, name: onlyLetters(e.target.value) })} />
                                 </td>
                                 <td>
                                   <input className="table-input" type="text" value={sEditForm.username} onChange={(e) => setSEditForm({ ...sEditForm, username: e.target.value })} />
@@ -886,7 +1050,7 @@ function AdminDashboard() {
                                   <input className="table-input" type="email" value={sEditForm.email} onChange={(e) => setSEditForm({ ...sEditForm, email: e.target.value })} />
                                 </td>
                                 <td>
-                                  <input className="table-input" type="text" value={sEditForm.phone || ''} onChange={(e) => setSEditForm({ ...sEditForm, phone: e.target.value })} />
+                                  <input className="table-input" type="text" value={sEditForm.phone || ''} onChange={(e) => setSEditForm({ ...sEditForm, phone: onlyDigits(e.target.value) })} inputMode="numeric" />
                                 </td>
                                 <td>
                                   <input className="table-input" type="text" value={sEditForm.role || ''} onChange={(e) => setSEditForm({ ...sEditForm, role: e.target.value })} />
@@ -993,9 +1157,10 @@ function AdminDashboard() {
                     <input
                       type="text"
                       value={imForm.name}
-                      onChange={(e) => setImForm({ ...imForm, name: e.target.value })}
+                      onChange={(e) => setImForm({ ...imForm, name: onlyLetters(e.target.value) })}
                       placeholder="Full name"
                     />
+
                   </div>
                   <div className="col">
                     <label>Email</label>
@@ -1005,6 +1170,7 @@ function AdminDashboard() {
                       onChange={(e) => setImForm({ ...imForm, email: e.target.value })}
                       placeholder="email@example.com"
                     />
+
                   </div>
                   <div className="col">
                     <label>Username</label>
@@ -1014,6 +1180,7 @@ function AdminDashboard() {
                       onChange={(e) => setImForm({ ...imForm, username: e.target.value })}
                       placeholder="Unique username"
                     />
+
                   </div>
                   <div className="col">
                     <label>Password</label>
@@ -1023,15 +1190,18 @@ function AdminDashboard() {
                       onChange={(e) => setImForm({ ...imForm, password: e.target.value })}
                       placeholder="Min 6 characters"
                     />
+
                   </div>
                   <div className="col">
                     <label>Phone</label>
                     <input
                       type="text"
                       value={imForm.phone}
-                      onChange={(e) => setImForm({ ...imForm, phone: e.target.value })}
+                      onChange={(e) => setImForm({ ...imForm, phone: onlyDigits(e.target.value) })}
+                      inputMode="numeric"
                       placeholder="Optional"
                     />
+
                   </div>
                 </div>
                 {imError && <div className="form-error">{imError}</div>}
@@ -1078,7 +1248,7 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={imEditForm.name}
-                                    onChange={(e) => setImEditForm({ ...imEditForm, name: e.target.value })}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, name: onlyLetters(e.target.value) })}
                                   />
                                 </td>
                                 <td>
@@ -1102,7 +1272,8 @@ function AdminDashboard() {
                                     className="table-input"
                                     type="text"
                                     value={imEditForm.phone || ''}
-                                    onChange={(e) => setImEditForm({ ...imEditForm, phone: e.target.value })}
+                                    onChange={(e) => setImEditForm({ ...imEditForm, phone: onlyDigits(e.target.value) })}
+                                    inputMode="numeric"
                                   />
                                 </td>
                                 <td className="actions-cell">
