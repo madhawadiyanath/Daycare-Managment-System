@@ -5,10 +5,18 @@
     box-sizing: border-box;
 }
 
+/* Ensure the images are same size and centered inside the feature-icon box */
+.feature-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* crop uniformly to fill the box */
+    display: block;
+}
+
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #4A90E2;
+    background-color: #85b1e4;
     color: #333;
 }
 
@@ -658,10 +666,20 @@ body {
 }
 
 .feature-icon {
-    font-size: 4rem;
+    font-size: 0; /* override text sizing since we're showing images */
     margin-bottom: 1.5rem;
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     animation: float 3s ease-in-out infinite;
+    width: 260px;            /* fixed container width for consistency */
+    height: 160px;           /* fixed container height for consistency */
+    margin-left: auto;       /* center the container */
+    margin-right: auto;      /* center the container */
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    background: #f6f7fb;
 }
 
 .feature-card:nth-child(1) .feature-icon {
@@ -723,7 +741,8 @@ body {
     }
     
     .feature-icon {
-        font-size: 3rem;
+        width: 220px;
+        height: 140px;
     }
 }
 
@@ -737,7 +756,8 @@ body {
     }
     
     .feature-icon {
-        font-size: 2.5rem;
+        width: 180px;
+        height: 120px;
     }
 }
 
