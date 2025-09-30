@@ -1,19 +1,34 @@
 .joinus-container {
     min-height: 100vh;
-    background: linear-gradient( #349ff7);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
   }
   
+  /* Center content and hide the left panel to mimic login layout */
+  .joinus-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .joinus-left { display: none; }
+  
   .joinus-card {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     padding: 40px;
     width: 100%;
-    max-width: 450px;
+    max-width: 400px;
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   
   .joinus-header {
@@ -25,12 +40,13 @@
     color: #333;
     margin-bottom: 10px;
     font-size: 28px;
-    font-weight: 600;
+    font-weight: 700;
   }
   
   .joinus-header p {
     color: #666;
     font-size: 16px;
+    margin: 0;
   }
   
   .joinus-form {
