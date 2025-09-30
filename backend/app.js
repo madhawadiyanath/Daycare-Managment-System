@@ -66,7 +66,7 @@ app.use((error, req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://minindu:SSm92Y3DC1jx5MHB@cluster0.qnygyj4.mongodb.net/")
+mongoose.connect("mongodb+srv://admin:5YdcKV1qUqM18Gkv@cluster0.8kk63n7.mongodb.net/finance_db?retryWrites=true&w=majority")
   .then(() => {
     console.log("Connected to MongoDB");
     
