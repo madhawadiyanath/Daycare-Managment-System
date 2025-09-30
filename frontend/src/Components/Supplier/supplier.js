@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+// Import logo - using require to handle special characters in filename
+const logoImage = require('../../assets/WhatsApp Image 2025-08-05 at 19.02.34_b673857a - Copy.jpg');
 
 function SupplierModal({ open, onClose }) {
   const [suppliers, setSuppliers] = useState([]);
@@ -105,27 +107,156 @@ function SupplierModal({ open, onClose }) {
           <button
             style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
             onClick={() => {
-              const doc = new jsPDF('l', 'pt', 'a4');
-              doc.setFontSize(18);
-              doc.text('Supplier List', 40, 40);
-              const head = [[
-                'Name', 'Address', 'Contact Number', 'Email Address', 'Company Name'
-              ]];
-              const body = (suppliers || []).map(s => [
-                s.name,
-                s.address,
-                s.contact,
-                s.email,
-                s.company
-              ]);
-              autoTable(doc, {
-                head,
-                body,
-                startY: 60,
-                styles: { fontSize: 10 },
-                headStyles: { fillColor: [25, 210, 25] }
-              });
-              doc.save('supplier-list.pdf');
+              try {
+                const doc = new jsPDF();
+                const pageWidth = doc.internal.pageSize.width;
+                const pageHeight = doc.internal.pageSize.height;
+
+                // Header decorative line
+                doc.setDrawColor(30, 58, 138);
+                doc.setLineWidth(3);
+                doc.line(10, 10, pageWidth - 10, 10);
+
+                // Company logo
+                try {
+                  doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+                } catch (logoError) {
+                  console.error('Error loading logo:', logoError);
+                  // Fallback stylized box
+                  doc.setFillColor(30, 58, 138);
+                  doc.rect(15, 15, 30, 30, 'F');
+                  doc.setTextColor(255, 255, 255);
+                  doc.setFontSize(14);
+                  doc.text('LITTLE', 30, 28, { align: 'center' });
+                  doc.text('NEST', 30, 35, { align: 'center' });
+                }
+
+                // Company name and tagline
+                doc.setFontSize(24);
+                doc.setTextColor(30, 58, 138);
+                doc.text('LITTLE NEST DAYCARE', 55, 28);
+
+                doc.setFontSize(12);
+                doc.setTextColor(70, 130, 180);
+                doc.text('Quality Childcare & Early Learning Center', 55, 36);
+
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text('📍 123 Childcare Lane, City, State 12345 | 📞 (555) 123-4567', 55, 42);
+                doc.text('✉️ info@littlenest.com | 🌐 www.littlenest.com', 55, 46);
+
+                // Report title box
+                doc.setFillColor(245, 250, 255);
+                doc.rect(10, 55, pageWidth - 20, 25, 'F');
+                doc.setDrawColor(30, 58, 138);
+                doc.setLineWidth(2);
+                doc.rect(10, 55, pageWidth - 20, 25);
+
+                // Inner border
+                doc.setDrawColor(70, 130, 180);
+                doc.setLineWidth(0.5);
+                doc.rect(12, 57, pageWidth - 24, 21);
+
+                doc.setFontSize(20);
+                doc.setTextColor(30, 58, 138);
+                doc.text('SUPPLIER DETAILS REPORT', pageWidth / 2, 70, { align: 'center' });
+
+                // Report metadata
+                doc.setFillColor(250, 252, 255);
+                doc.rect(10, 85, pageWidth - 20, 18, 'F');
+                doc.setDrawColor(200, 220, 240);
+                doc.setLineWidth(0.5);
+                doc.rect(10, 85, pageWidth - 20, 18);
+
+                const currentDate = new Date();
+                doc.setFontSize(10);
+                doc.setTextColor(60, 60, 60);
+                doc.text(`Report Generated: ${currentDate.toLocaleDateString()} at ${currentDate.toLocaleTimeString()}`, 15, 92);
+                doc.text(`Total Records: ${(suppliers || []).length}`, 15, 97);
+                doc.text(`Report Type: All Suppliers`, pageWidth / 2 + 10, 92);
+                doc.text(`Status: ${(suppliers || []).length > 0 ? 'Complete' : 'No Data Available'}`, pageWidth / 2 + 10, 97);
+
+                // Table data
+                const tableData = (suppliers || []).map(s => [
+                  s.name || 'N/A',
+                  s.address || 'N/A',
+                  s.contact || 'N/A',
+                  s.email || 'N/A',
+                  s.company || 'N/A'
+                ]);
+
+                autoTable(doc, {
+                  head: [['Name', 'Address', 'Contact Number', 'Email Address', 'Company Name']],
+                  body: tableData,
+                  startY: 110,
+                  theme: 'grid',
+                  alternateRowStyles: { fillColor: [248, 251, 255] },
+                  headStyles: {
+                    fillColor: [30, 58, 138],
+                    textColor: [255, 255, 255],
+                    fontSize: 11,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    cellPadding: { top: 5, right: 3, bottom: 5, left: 3 }
+                  },
+                  bodyStyles: {
+                    fontSize: 9,
+                    cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+                    lineColor: [180, 200, 220],
+                    lineWidth: 0.3
+                  },
+                  styles: {
+                    lineColor: [70, 130, 180],
+                    lineWidth: 0.5,
+                    cellPadding: 4
+                  },
+                  columnStyles: {
+                    0: { halign: 'left' },
+                    1: { halign: 'left' },
+                    2: { halign: 'center' },
+                    3: { halign: 'left' },
+                    4: { halign: 'left' }
+                  }
+                });
+
+                // Summary section
+                const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 125;
+                doc.setFillColor(245, 250, 255);
+                doc.rect(10, finalY, pageWidth - 20, 20, 'F');
+                doc.setDrawColor(70, 130, 180);
+                doc.setLineWidth(1);
+                doc.rect(10, finalY, pageWidth - 20, 20);
+
+                doc.setFontSize(12);
+                doc.setTextColor(30, 58, 138);
+                doc.text('SUPPLIER SUMMARY', 15, finalY + 10);
+
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Total Suppliers: ${(suppliers || []).length}`, 15, finalY + 16);
+
+                // Footer
+                const footerY = pageHeight - 25;
+                doc.setDrawColor(30, 58, 138);
+                doc.setLineWidth(1);
+                doc.line(10, footerY, pageWidth - 10, footerY);
+
+                doc.setFontSize(8);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Little Nest Daycare - Confidential Supplier Document', 15, footerY + 8);
+                doc.text(`Page 1 of 1`, pageWidth - 15, footerY + 8, { align: 'right' });
+                doc.text('This document may contain sensitive supplier information. Handle with care.', 15, footerY + 12);
+                doc.text(`Generated by: Daycare Management System v1.0`, pageWidth - 15, footerY + 12, { align: 'right' });
+
+                doc.setFontSize(7);
+                doc.setTextColor(150, 150, 150);
+                doc.text('© 2024 Little Nest Daycare. All rights reserved. Unauthorized distribution prohibited.', pageWidth / 2, footerY + 18, { align: 'center' });
+
+                doc.save(`Little-Nest-Suppliers-Report-${currentDate.toISOString().split('T')[0]}.pdf`);
+              } catch (e) {
+                console.error('Error generating Supplier PDF:', e);
+                alert('Error generating PDF. Please try again.');
+              }
             }}
           >
             Download PDF
