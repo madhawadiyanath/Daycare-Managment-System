@@ -33,6 +33,7 @@ export default function LearningActivities() {
   const parentUser = JSON.parse(localStorage.getItem('user') || 'null');
   const navigate = useNavigate();
   const [childId, setChildId] = useState('');
+  const [childIdInvalid, setChildIdInvalid] = useState(false);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,6 +58,20 @@ export default function LearningActivities() {
     }
     // optionally prefill childId if your parent profile stores a default child
   }, []);
+
+  // Function to handle child ID input - must start with C or c followed by numbers
+  const handleChildIdChange = (e) => {
+    const value = e.target.value;
+    // Allow Child ID to start with C or c followed by numbers (e.g., C123, c456)
+    const childIdRegex = /^[Cc]\d*$/;
+    
+    if (value === '' || childIdRegex.test(value)) {
+      setChildId(value);
+      setChildIdInvalid(false); // Reset invalid state when valid input
+    } else {
+      setChildIdInvalid(true); // Set invalid state when wrong format is attempted
+    }
+  };
 
   const fetchActivities = async () => {
     setError('');
@@ -583,10 +598,17 @@ export default function LearningActivities() {
             <div className="actions" style={{ gap: 8, marginBottom: 16 }}>
               <input
                 type="text"
-                placeholder="Enter Child ID (e.g., A1)"
+                placeholder="Enter Child ID (e.g., C123)"
                 value={childId}
-                onChange={(e) => setChildId(e.target.value)}
-                style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
+                onChange={handleChildIdChange}
+                title="Child ID must start with C or c followed by numbers"
+                style={{ 
+                  padding: '10px', 
+                  borderRadius: 8, 
+                  border: `1px solid ${childIdInvalid ? '#dc3545' : '#ddd'}`, 
+                  flex: 1, 
+                  minWidth: 220 
+                }}
               />
               <button 
                 className="btn" 

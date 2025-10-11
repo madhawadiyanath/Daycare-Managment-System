@@ -23,14 +23,50 @@ function TeacherDashboard() {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
+  const [childIdInvalid, setChildIdInvalid] = useState(false);
   
-  // Child details lookup state
-  const [childIdInput, setChildIdInput] = useState('');
-  const [childLoading, setChildLoading] = useState(false);
-  const [childError, setChildError] = useState('');
-  const [childDetails, setChildDetails] = useState(null);
+  // Function to handle child ID input - must start with C or c followed by numbers
+  const handleChildIdChange = (e) => {
+    const value = e.target.value;
+    // Allow Child ID to start with C or c followed by numbers (e.g., C123, c456)
+    const childIdRegex = /^[Cc]\d*$/;
+    
+    if (value === '' || childIdRegex.test(value)) {
+      setCombinedForm({ ...combinedForm, childId: value });
+      setChildIdInvalid(false); // Reset invalid state when valid input
+    } else {
+      setChildIdInvalid(true); // Set invalid state when wrong format is attempted
+    }
+  };
+  
+  // Function to handle child name input - only allow letters and spaces
+  const handleChildNameChange = (e) => {
+    const value = e.target.value;
+    // Allow only letters (a-z, A-Z), spaces, and common name characters like hyphens and apostrophes
+    const lettersOnlyRegex = /^[a-zA-Z\s'-]*$/;
+    
+    if (lettersOnlyRegex.test(value)) {
+      setCombinedForm({ ...combinedForm, childName: value });
+    }
+  };
+  
+  // Function to handle Learning Activities child ID input - must start with C or c followed by numbers
+  const handleLaChildIdChange = (e) => {
+    const value = e.target.value;
+    // Allow Child ID to start with C or c followed by numbers (e.g., C123, c456)
+    const childIdRegex = /^[Cc]\d*$/;
+    
+    if (value === '' || childIdRegex.test(value)) {
+      setLaChildId(value);
+      setLaChildIdInvalid(false); // Reset invalid state when valid input
+    } else {
+      setLaChildIdInvalid(true); // Set invalid state when wrong format is attempted
+    }
+  };
+  
   // Learning activities list state
   const [laChildId, setLaChildId] = useState('');
+  const [laChildIdInvalid, setLaChildIdInvalid] = useState(false);
   const [laList, setLaList] = useState([]);
   const [laLoadingList, setLaLoadingList] = useState(false);
   const [laListError, setLaListError] = useState('');
@@ -137,9 +173,13 @@ function TeacherDashboard() {
                 <input
                   type="text"
                   value={combinedForm.childId}
-                  onChange={(e) => setCombinedForm({ ...combinedForm, childId: e.target.value })}
-                  placeholder="Enter Child ID"
+                  onChange={handleChildIdChange}
+                  placeholder="Enter Child ID (e.g., C123)"
                   required
+                  title="Child ID must start with C or c followed by numbers"
+                  style={{
+                    borderColor: childIdInvalid ? '#dc3545' : '#ced4da'
+                  }}
                 />
               </div>
               <div className="col">
@@ -147,9 +187,10 @@ function TeacherDashboard() {
                 <input
                   type="text"
                   value={combinedForm.childName}
-                  onChange={(e) => setCombinedForm({ ...combinedForm, childName: e.target.value })}
-                  placeholder="Enter Child Name"
+                  onChange={handleChildNameChange}
+                  placeholder="Enter Child Name (letters only)"
                   required
+                  title="Only letters, spaces, hyphens, and apostrophes are allowed"
                 />
               </div>
               <div className="col">
@@ -303,82 +344,23 @@ function TeacherDashboard() {
           </form>
         </div>
 
-        {/* View Child Details by ID */}
-        <div className="card full-width">
-          <h3>View Child Details</h3>
-          <div className="actions" style={{ gap: 8 }}>
-            <input
-              type="text"
-              placeholder="Enter Child ID"
-              value={childIdInput}
-              onChange={(e) => setChildIdInput(e.target.value)}
-              style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
-            />
-            <button
-              className="btn"
-              type="button"
-              disabled={childLoading}
-              onClick={async () => {
-                setChildError('');
-                setChildDetails(null);
-                const id = childIdInput.trim();
-                if (!id) { setChildError('Please enter a Child ID'); return; }
-                try {
-                  setChildLoading(true);
-                  const res = await axios.get(`http://localhost:5000/children/${encodeURIComponent(id)}`);
-                  if (res.data?.success) {
-                    setChildDetails(res.data.data);
-                  } else {
-                    setChildError(res.data?.message || 'Child not found');
-                  }
-                } catch (err) {
-                  setChildError(err?.response?.data?.message || 'Child not found');
-                } finally {
-                  setChildLoading(false);
-                }
-              }}
-            >
-              {childLoading ? 'Loading...' : 'Get Details'}
-            </button>
-          </div>
-          {childError && <div className="form-error" style={{ marginTop: 10 }}>{childError}</div>}
-          {childDetails && (
-            <div className="table-wrap" style={{ marginTop: 12 }}>
-              <table className="table">
-                <tbody>
-                  <tr><th>Child ID</th><td>{childDetails.childId}</td></tr>
-                  <tr><th>Name</th><td>{childDetails.name}</td></tr>
-                  <tr><th>Age</th><td>{childDetails.age}</td></tr>
-                  <tr><th>Gender</th><td>{childDetails.gender}</td></tr>
-                  <tr><th>Parent</th><td>{childDetails.parent}</td></tr>
-                  <tr><th>Health Notes</th><td>{childDetails.healthNotes || '-'}</td></tr>
-                  <tr><th>Check-in Time</th><td>{childDetails.checkInTime || '-'}</td></tr>
-                  <tr><th>Check-out Time</th><td>{childDetails.checkOutTime || '-'}</td></tr>
-                  <tr><th>Meal Updates</th><td>{childDetails.meals || '-'}</td></tr>
-                  <tr><th>Nap Times</th><td>{childDetails.napTimes || '-'}</td></tr>
-                  <tr><th>Health Status</th><td>{childDetails.healthStatus || '-'}</td></tr>
-                  <tr><th>Accident/Incident Reports</th><td>{childDetails.incidents || '-'}</td></tr>
-                  <tr><th>Medication Updates</th><td>{childDetails.medication || '-'}</td></tr>
-                  <tr><th>Mood & Behavior</th><td>{childDetails.moodBehavior || '-'}</td></tr>
-                  <tr><th>Interaction with Other Kids</th><td>{childDetails.interactions || '-'}</td></tr>
-                  <tr><th>Approved By</th><td>{childDetails.approvedBy ? (childDetails.approvedBy.name || childDetails.approvedBy.username || childDetails.approvedBy._id) : '-'}</td></tr>
-                  <tr><th>Created</th><td>{childDetails.createdAt ? new Date(childDetails.createdAt).toLocaleString() : '-'}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
         {/* View Learning Activities by Child ID */}
         <div className="card full-width">
           <h3>View Learning Activities</h3>
           <div className="actions" style={{ gap: 8 }}>
             <input
               type="text"
-              placeholder="Enter Child ID"
+              placeholder="Enter Child ID (e.g., C123)"
               value={laChildId}
-              onChange={(e) => setLaChildId(e.target.value)}
-              style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
+              onChange={handleLaChildIdChange}
+              title="Child ID must start with C or c followed by numbers"
+              style={{ 
+                padding: '10px', 
+                borderRadius: 8, 
+                border: `1px solid ${laChildIdInvalid ? '#dc3545' : '#ddd'}`, 
+                flex: 1, 
+                minWidth: 220 
+              }}
             />
             <button
               className="btn"

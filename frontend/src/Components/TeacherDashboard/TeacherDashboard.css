@@ -36,6 +36,7 @@
   background: #dee2e6;
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
   cursor: pointer;
 }
 
@@ -128,6 +129,16 @@
 
 .fm-form input:focus, .fm-form textarea:focus {
   outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Child name validation styles */
+.fm-form input[title*="letters"] {
+  position: relative;
+}
+
+.fm-form input[title*="letters"]:invalid {
   border-color: #80bdff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
