@@ -70,6 +70,23 @@ function TeacherDashboard() {
   const [laList, setLaList] = useState([]);
   const [laLoadingList, setLaLoadingList] = useState(false);
   const [laListError, setLaListError] = useState('');
+  
+  // Update functionality state
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [updateForm, setUpdateForm] = useState({
+    title: '',
+    description: '',
+    notes: ''
+  });
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [updateError, setUpdateError] = useState('');
+  const [updateSuccess, setUpdateSuccess] = useState('');
+  
+  // Delete functionality state
+  const [deleteActivity, setDeleteActivity] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteSuccess, setDeleteSuccess] = useState('');
 
   return (
     <div className="t-dashboard">
@@ -398,12 +415,13 @@ function TeacherDashboard() {
                   <th>Title</th>
                   <th>Description</th>
                   <th>Recorded By</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {laList.length === 0 ? (
                   <tr>
-                    <td colSpan="4" style={{ textAlign: 'center' }}>
+                    <td colSpan="5" style={{ textAlign: 'center' }}>
                       {laLoadingList ? 'Loading...' : 'No activities to show'}
                     </td>
                   </tr>
@@ -414,12 +432,306 @@ function TeacherDashboard() {
                       <td>{a.title || '-'}</td>
                       <td>{a.description || '-'}</td>
                       <td>{a.recordedBy || '-'}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button
+                            className="btn"
+                            style={{ 
+                              padding: '6px 12px', 
+                              fontSize: '12px', 
+                              background: '#ffc107', 
+                              color: '#000',
+                              border: 'none'
+                            }}
+                            onClick={() => {
+                              setSelectedActivity(a);
+                              setUpdateForm({
+                                title: a.title || '',
+                                description: a.description || '',
+                                notes: a.notes || ''
+                              });
+                              setUpdateError('');
+                              setUpdateSuccess('');
+                            }}
+                          >
+                            Update
+                          </button>
+                          <button
+                            className="btn"
+                            style={{ 
+                              padding: '6px 12px', 
+                              fontSize: '12px', 
+                              background: '#dc3545', 
+                              color: '#fff',
+                              border: 'none'
+                            }}
+                            onClick={() => {
+                              setDeleteActivity(a);
+                              setDeleteError('');
+                              setDeleteSuccess('');
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
+          
+          {/* Update Form Modal */}
+          {selectedActivity && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000
+            }}>
+              <div style={{
+                background: 'white',
+                padding: '24px',
+                borderRadius: '8px',
+                width: '90%',
+                maxWidth: '500px',
+                maxHeight: '80vh',
+                overflow: 'auto'
+              }}>
+                <h3>Update Learning Activity</h3>
+                <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
+                  Activity ID: {selectedActivity._id} | Child ID: {selectedActivity.childId}
+                </p>
+                
+                {updateError && <div className="form-error">{updateError}</div>}
+                {updateSuccess && <div className="form-success">{updateSuccess}</div>}
+                
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setUpdateError('');
+                  setUpdateSuccess('');
+                  
+                  try {
+                    setUpdateLoading(true);
+                    const response = await axios.put(`http://localhost:5000/learning-activities/${selectedActivity._id}`, {
+                      title: updateForm.title.trim(),
+                      description: updateForm.description.trim(),
+                      notes: updateForm.notes.trim()
+                    });
+                    
+                    if (response.data?.success) {
+                      setUpdateSuccess('Activity updated successfully!');
+                      // Refresh the activities list
+                      const res = await axios.get(`http://localhost:5000/learning-activities/by-child/${encodeURIComponent(laChildId)}`);
+                      if (res.data?.success) {
+                        setLaList(res.data.data || []);
+                      }
+                      // Close modal after 1.5 seconds
+                      setTimeout(() => {
+                        setSelectedActivity(null);
+                        setUpdateSuccess('');
+                      }, 1500);
+                    }
+                  } catch (err) {
+                    setUpdateError(err?.response?.data?.message || 'Failed to update activity');
+                  } finally {
+                    setUpdateLoading(false);
+                  }
+                }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Title</label>
+                    <input
+                      type="text"
+                      value={updateForm.title}
+                      onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px', 
+                        border: '1px solid #ced4da', 
+                        borderRadius: '4px' 
+                      }}
+                      required
+                    />
+                  </div>
+                  
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Description</label>
+                    <textarea
+                      rows="3"
+                      value={updateForm.description}
+                      onChange={(e) => setUpdateForm({ ...updateForm, description: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px', 
+                        border: '1px solid #ced4da', 
+                        borderRadius: '4px',
+                        resize: 'vertical'
+                      }}
+                      required
+                    />
+                  </div>
+                  
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Notes</label>
+                    <textarea
+                      rows="2"
+                      value={updateForm.notes}
+                      onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px', 
+                        border: '1px solid #ced4da', 
+                        borderRadius: '4px',
+                        resize: 'vertical'
+                      }}
+                      placeholder="Optional notes..."
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedActivity(null);
+                        setUpdateError('');
+                        setUpdateSuccess('');
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        border: '1px solid #ced4da',
+                        background: 'white',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      disabled={updateLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn"
+                      disabled={updateLoading}
+                      style={{ padding: '8px 16px' }}
+                    >
+                      {updateLoading ? 'Updating...' : 'Update Activity'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+          
+          {/* Delete Confirmation Modal */}
+          {deleteActivity && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000
+            }}>
+              <div style={{
+                background: 'white',
+                padding: '24px',
+                borderRadius: '8px',
+                width: '90%',
+                maxWidth: '400px'
+              }}>
+                <h3 style={{ color: '#dc3545', marginBottom: '16px' }}>Delete Learning Activity</h3>
+                <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
+                  Are you sure you want to delete this activity?
+                </p>
+                <div style={{ 
+                  background: '#f8f9fa', 
+                  padding: '12px', 
+                  borderRadius: '4px', 
+                  marginBottom: '16px',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px' }}><strong>Activity ID:</strong> {deleteActivity._id}</p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px' }}><strong>Child ID:</strong> {deleteActivity.childId}</p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px' }}><strong>Title:</strong> {deleteActivity.title || 'N/A'}</p>
+                  <p style={{ margin: '0', fontSize: '14px' }}><strong>Date:</strong> {deleteActivity.date || (deleteActivity.createdAt ? new Date(deleteActivity.createdAt).toLocaleDateString() : 'N/A')}</p>
+                </div>
+                
+                {deleteError && <div className="form-error">{deleteError}</div>}
+                {deleteSuccess && <div className="form-success">{deleteSuccess}</div>}
+                
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteActivity(null);
+                      setDeleteError('');
+                      setDeleteSuccess('');
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      border: '1px solid #ced4da',
+                      background: 'white',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    disabled={deleteLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setDeleteError('');
+                      setDeleteSuccess('');
+                      
+                      try {
+                        setDeleteLoading(true);
+                        const response = await axios.delete(`http://localhost:5000/learning-activities/${deleteActivity._id}`);
+                        
+                        if (response.data?.success) {
+                          setDeleteSuccess('Activity deleted successfully!');
+                          // Refresh the activities list
+                          const res = await axios.get(`http://localhost:5000/learning-activities/by-child/${encodeURIComponent(laChildId)}`);
+                          if (res.data?.success) {
+                            setLaList(res.data.data || []);
+                          }
+                          // Close modal after 1.5 seconds
+                          setTimeout(() => {
+                            setDeleteActivity(null);
+                            setDeleteSuccess('');
+                          }, 1500);
+                        }
+                      } catch (err) {
+                        setDeleteError(err?.response?.data?.message || 'Failed to delete activity');
+                      } finally {
+                        setDeleteLoading(false);
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? 'Deleting...' : 'Delete Activity'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
