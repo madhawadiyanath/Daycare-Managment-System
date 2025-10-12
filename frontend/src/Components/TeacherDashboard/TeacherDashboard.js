@@ -42,8 +42,8 @@ function TeacherDashboard() {
   // Function to handle child name input - only allow letters and spaces
   const handleChildNameChange = (e) => {
     const value = e.target.value;
-    // Allow only letters (a-z, A-Z), spaces, and common name characters like hyphens and apostrophes
-    const lettersOnlyRegex = /^[a-zA-Z\s'-]*$/;
+    // Allow only letters (a-z, A-Z), spaces, and periods - NO quotes, apostrophes, or hyphens
+    const lettersOnlyRegex = /^[a-zA-Z\s.]*$/;
     
     if (lettersOnlyRegex.test(value)) {
       setCombinedForm({ ...combinedForm, childName: value });
@@ -207,7 +207,7 @@ function TeacherDashboard() {
                   onChange={handleChildNameChange}
                   placeholder="Enter Child Name (letters only)"
                   required
-                  title="Only letters, spaces, hyphens, and apostrophes are allowed"
+                  title="Only letters, spaces, and periods are allowed"
                 />
               </div>
               <div className="col">
