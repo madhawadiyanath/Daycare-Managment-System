@@ -17,12 +17,20 @@ function SalaryDetails() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingSalary, setEditingSalary] = useState(null);
+  // Function to get current month in YYYY-MM format
+  const getCurrentMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
   const [formData, setFormData] = useState({
     empID: '',
     empName: '',
     email: '',
     basicSalary: '',
-    month: '',
+    month: getCurrentMonth(),
     allowances: '',
     loanDeductions: ''
   });
@@ -116,6 +124,13 @@ function SalaryDetails() {
     // Validation checks
     if (!validateEmployeeName(formData.empName)) {
       setError('Employee name can only contain letters and spaces');
+      return;
+    }
+    
+    // Check if month is current month
+    const currentMonth = getCurrentMonth();
+    if (formData.month !== currentMonth) {
+      setError(`You can only add salary for the current month (${currentMonth})`);
       return;
     }
     
@@ -565,14 +580,17 @@ function SalaryDetails() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="month">Month</label>
+                  <label htmlFor="month">Month <span className="current-month">(Current: {getCurrentMonth()})</span></label>
                   <input
                     type="month"
                     id="month"
                     name="month"
                     value={formData.month}
                     onChange={handleInputChange}
+                    min={getCurrentMonth()}
+                    max={getCurrentMonth()}
                     required
+                    className="month-input"
                   />
                 </div>
               </div>
