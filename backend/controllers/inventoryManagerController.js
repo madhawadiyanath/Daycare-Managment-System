@@ -117,18 +117,23 @@ const InventoryItem = require('../models/inventoryItem');
 const createInventoryItem = async (req, res) => {
   try {
     console.log("items adding")
-    const { name, category, stock, expiry, supplier } = req.body;
-    if (!name || !category || stock === undefined) {/* ...existing code... */}
+    const { name, category, stock, expiry, supplier, manufacture } = req.body;
+    if (!name || !category || stock === undefined) {
+      return res.status(400).json({ success: false, message: 'Name, category, and stock are required' });
+    }
     const newItem = new InventoryItem({
       name,
       category,
       stock,
       expiry,
       supplier,
+      manufacture,
     });
     await newItem.save();
-    /* ...existing code... */
-  } catch (err) {/* ...existing code... */}
+    return res.json({ success: true, message: 'Item added successfully' });
+  } catch (err) {
+     res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 // Controller to check for low stock and send email

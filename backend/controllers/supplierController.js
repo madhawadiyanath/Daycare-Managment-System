@@ -50,3 +50,23 @@ exports.updatesupplier = async (req, res) => {
   }
 };
 
+// Search suppliers by name
+exports.searchSuppliers = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Name query parameter is required' });
+    }
+
+    // Match names starting with the input string
+    const regexPattern = new RegExp(`^${name}`, 'i'); // Case-insensitive match for names starting with the input
+    const suppliers = await Supplier.find({
+      name: { $regex: regexPattern } // Apply regex pattern
+    });
+
+    res.json(suppliers);
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to search suppliers' });
+  }
+};
+

@@ -6,6 +6,7 @@ const inventoryItemSchema = new mongoose.Schema({
   stock: { type: Number, required: true },
   expiry: { type: Date },
   supplier: { type: String },
+  manufacture: { type: Date },
   createdOn: { type: Date, default: Date.now },
   modifiedOn: { type: Date, default: Date.now },
 });

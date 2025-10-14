@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+const logoImage = require('../../assets/WhatsApp Image 2025-08-05 at 19.02.34_b673857a - Copy.jpg');
 
 function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchCategory, setSearchCategory] = useState('');
+
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().startsWith(searchTerm.toLowerCase()) &&
+    item.category.toLowerCase().startsWith(searchCategory.toLowerCase())
+  );
+
   if (!open) return null;
 
   const formatDate = (date) => {
@@ -11,29 +20,129 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
   };
 
   const handleDownloadPdf = () => {
-    const doc = new jsPDF('l', 'pt', 'a4');
-    doc.setFontSize(18);
-    doc.text('All Inventory Items', 40, 40);
-    const head = [[
-      'Name', 'Category', 'Stock', 'Expiry', 'Supplier', 'Created On', 'Modified On'
-    ]];
-    const body = (items || []).map(item => [
-      item.name,
-      item.category,
-      item.stock,
+    const doc = new jsPDF('portrait', 'pt', 'a4');
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+
+    // Header decorative line
+    doc.setDrawColor(30, 58, 138);
+    doc.setLineWidth(3);
+    doc.line(10, 10, pageWidth - 10, 10);
+
+    // Company logo
+    try {
+      doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+    } catch (logoError) {
+      console.error('Error loading logo:', logoError);
+      doc.setFillColor(30, 58, 138);
+      doc.rect(15, 15, 30, 30, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.text('LITTLE', 30, 28, { align: 'center' });
+      doc.text('NEST', 30, 35, { align: 'center' });
+    }
+
+    // Company name and tagline
+    doc.setFontSize(24);
+    doc.setTextColor(30, 58, 138);
+    doc.text('LITTLE NEST DAYCARE', 55, 28);
+
+    doc.setFontSize(12);
+    doc.setTextColor(70, 130, 180);
+    doc.text('Quality Childcare & Early Learning Center', 55, 40);
+
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text(' 123 Childcare Lane, City, State 12345 |  (555) 123-4567', 55, 52);
+    doc.text(' info@littlenest.com |  www.littlenest.com', 55, 64);
+
+    // Report title box
+    doc.setFillColor(245, 250, 255);
+    doc.rect(10, 75, pageWidth - 20, 25, 'F');
+    doc.setDrawColor(30, 58, 138);
+    doc.setLineWidth(2);
+    doc.rect(10, 75, pageWidth - 20, 25);
+
+    doc.setFontSize(20);
+    doc.setTextColor(30, 58, 138);
+    doc.text('INVENTORY ITEMS REPORT', pageWidth / 2, 90, { align: 'center' });
+
+    // Report metadata
+    const currentDate = new Date();
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Report Generated: ${currentDate.toLocaleDateString()} at ${currentDate.toLocaleTimeString()}`, 15, 110);
+    doc.text(`Total Records: ${(items || []).length}`, 15, 120);
+    doc.text(`Report Type: All Inventory Items`, pageWidth / 2, 110, { align: 'center' });
+    doc.text(`Status: ${(items || []).length > 0 ? 'Complete' : 'No Data Available'}`, pageWidth / 2, 120, { align: 'center' });
+
+    // Table data
+    const tableData = (items || []).map(item => [
+      item.name || 'N/A',
+      item.category || 'N/A',
+      item.stock || 'N/A',
       formatDate(item.expiry),
-      item.supplier,
+      formatDate(item.manufacture),
+      item.supplier || 'N/A',
       formatDate(item.createdOn),
       formatDate(item.modifiedOn)
     ]);
+
     autoTable(doc, {
-      head,
-      body,
-      startY: 60,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [25, 210, 25] }
+      head: [['Name', 'Category', 'Stock', 'Expiry', 'Manufacture', 'Supplier', 'Created On', 'Modified On']],
+      body: tableData,
+      startY: 140,
+      theme: 'grid',
+      alternateRowStyles: { fillColor: [248, 251, 255] },
+      headStyles: {
+        fillColor: [30, 58, 138],
+        textColor: [255, 255, 255],
+        fontSize: 11,
+        fontStyle: 'bold',
+        halign: 'center',
+        cellPadding: { top: 5, right: 3, bottom: 5, left: 3 }
+      },
+      bodyStyles: {
+        fontSize: 9,
+        cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+        lineColor: [180, 200, 220],
+        lineWidth: 0.3
+      },
+      styles: {
+        lineColor: [70, 130, 180],
+        lineWidth: 0.5,
+        cellPadding: 4
+      },
+      columnStyles: {
+        0: { halign: 'left' },
+        1: { halign: 'left' },
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'center' },
+        5: { halign: 'left' },
+        6: { halign: 'center' },
+        7: { halign: 'center' }
+      }
     });
-    doc.save('inventory-list.pdf');
+
+    // Footer
+    const footerY = pageHeight - 25;
+    doc.setDrawColor(30, 58, 138);
+    doc.setLineWidth(1);
+    doc.line(10, footerY, pageWidth - 10, footerY);
+
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Little Nest Daycare - Confidential Inventory Document', pageWidth / 2, footerY + 8, { align: 'center' });
+    doc.text(`Page 1 of 1`, pageWidth / 2, footerY + 12, { align: 'center' });
+    doc.text('This document may contain sensitive inventory information. Handle with care.', pageWidth / 2, footerY + 16, { align: 'center' });
+    doc.text(`Generated by: Daycare Management System v1.0`, pageWidth / 2, footerY + 20, { align: 'center' });
+
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text('© 2024 Little Nest Daycare. All rights reserved. Unauthorized distribution prohibited.', pageWidth / 2, footerY + 24, { align: 'center' });
+
+    doc.save(`Little-Nest-Inventory-Report-${currentDate.toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -44,6 +153,22 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
       <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 1500, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h2 style={{ margin: 0 }}>All Inventory Items</h2>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <input
+              type="text"
+              placeholder="Search items by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
+            />
+            <input
+              type="text"
+              placeholder="Search items by category..."
+              value={searchCategory}
+              onChange={(e) => setSearchCategory(e.target.value)}
+              style={{ padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
+            />
+          </div>
           <button
             style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
             onClick={handleDownloadPdf}
@@ -58,6 +183,7 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
               <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Category</th>
               <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Stock</th>
               <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Expiry</th>
+              <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Manufacture</th>
               <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Supplier</th>
               <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Created On</th>
               <th style={{ borderBottom: '1px solid #ccc', padding: 8, textAlign: 'left' }}>Modified On</th>
@@ -65,13 +191,14 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
             </tr>
           </thead>
           <tbody>
-            {items && items.length > 0 ? (
-              items.map((item, idx) => (
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item, idx) => (
                 <tr key={item._id || idx}>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{item.name}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{item.category}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{item.stock}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{formatDate(item.expiry)}</td>
+                  <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{formatDate(item.manufacture)}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{item.supplier}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{formatDate(item.createdOn)}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{formatDate(item.modifiedOn)}</td>
@@ -88,7 +215,7 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
                 </tr>
               ))
             ) : (
-              <tr><td colSpan={8} style={{ padding: 16, textAlign: 'center' }}>No items found.</td></tr>
+              <tr><td colSpan={9} style={{ padding: 16, textAlign: 'center' }}>No items found.</td></tr>
             )}
           </tbody>
         </table>

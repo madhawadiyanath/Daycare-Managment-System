@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -10,6 +9,7 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
     stock: '',
     expiry: '',
     supplier: '',
+    manufacture: '', // Added manufacture date field
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,9 +22,10 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
         stock: editItem.stock || '',
         expiry: editItem.expiry ? editItem.expiry.substring(0, 10) : '',
         supplier: editItem.supplier || '',
+        manufacture: editItem.manufacture ? editItem.manufacture.substring(0, 10) : '', // Handle manufacture date
       });
     } else {
-      setForm({ name: '', category: '', stock: '', expiry: '', supplier: '' });
+      setForm({ name: '', category: '', stock: '', expiry: '', supplier: '', manufacture: '' });
     }
   }, [isEdit, editItem, open]);
 
@@ -42,9 +43,22 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
     }
   };
 
+  const today = new Date().toISOString().split('T')[0];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (form.expiry && form.expiry < today) {
+      setError('Expiry date cannot be in the past.');
+      return;
+    }
+
+    if (form.manufacture && form.manufacture > today) {
+      setError('Manufacture date cannot be in the future.');
+      return;
+    }
+
     setLoading(true);
     try {
       let res;
@@ -55,6 +69,7 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
           stock: form.stock,
           expiry: form.expiry,
           supplier: form.supplier,
+          manufacture: form.manufacture, // Include manufacture date in the payload
         });
       } else {
         res = await axios.post('http://localhost:5000/admin/inventory-managers/items', {
@@ -63,12 +78,13 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
           stock: form.stock,
           expiry: form.expiry,
           supplier: form.supplier,
+          manufacture: form.manufacture, // Include manufacture date in the payload
         });
       }
       if (res.data?.success) {
-        setForm({ name: '', category: '', stock: '', expiry: '', supplier: '' });
+        setForm({ name: '', category: '', stock: '', expiry: '', supplier: '', manufacture: '' });
         if (onSuccess) onSuccess();
-        onClose();
+        onClose(); // Ensure popup closes after successful submission
       } else {
         setError(res.data?.message || (isEdit ? 'Failed to update' : 'Failed to create'));
       }
@@ -104,7 +120,28 @@ function InventoryNewItemAdd({ open, onClose, onSuccess, editItem, supplierNames
           {form.category.trim().toLowerCase() === 'food' && (
             <div style={{ marginBottom: 16 }}>
               <label>Expiry Date<br/>
-                <input name="expiry" type="date" value={form.expiry} onChange={handleChange} style={{ width: '100%', padding: 8, marginTop: 4 }} />
+                <input
+                  name="expiry"
+                  type="date"
+                  value={form.expiry}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: 8, marginTop: 4 }}
+                  min={today} // Prevent selecting dates before today
+                />
+              </label>
+            </div>
+          )}
+          {form.category.trim().toLowerCase() === 'food' && (
+            <div style={{ marginBottom: 16 }}>
+              <label>Manufacture Date<br/>
+                <input
+                  name="manufacture"
+                  type="date"
+                  value={form.manufacture}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: 8, marginTop: 4 }}
+                  max={today} // Prevent selecting future dates
+                />
               </label>
             </div>
           )}

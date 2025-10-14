@@ -11,6 +11,8 @@ function SupplierModal({ open, onClose }) {
   const [supplierError, setSupplierError] = useState('');
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
   const [supplierSuccess, setSupplierSuccess] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
 
   // Fetch suppliers from backend using axios
   const fetchSuppliers = async () => {
@@ -94,6 +96,43 @@ function SupplierModal({ open, onClose }) {
     }
   };
 
+  const filteredSuppliers = suppliers.filter(supplier =>
+    supplier.name.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    supplier.address.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    supplier.contact.startsWith(searchTerm) ||
+    supplier.email.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    supplier.company.toLowerCase().startsWith(searchTerm.toLowerCase())
+  );
+
+  const handleSearchChange = async (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.trim() === '') {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get(`http://localhost:5000/admin/suppliers/search?name=${value}`);
+      const data = res.data;
+
+      if (Array.isArray(data)) {
+        setSuggestions(data.map(supplier => supplier.name).slice(0, 5)); // Extract names and limit to top 5 suggestions
+      } else {
+        setSuggestions([]);
+      }
+    } catch (err) {
+      console.error('Error fetching search suggestions:', err);
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchTerm(suggestion);
+    setSuggestions([]); // Clear suggestions after selection
+  };
+
   if (!open) return null;
 
   return (
@@ -103,7 +142,54 @@ function SupplierModal({ open, onClose }) {
     }}>
       <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 1000, boxShadow: '0 2px 16px rgba(0,0,0,0.2)', maxHeight: '80vh', overflowY: 'auto' }}>
         <h2 style={{ marginBottom: 24 }}>Suppliers</h2>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Search suppliers by name..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              style={{ flex: 1, padding: 8, marginRight: 16, border: '1px solid #ccc', borderRadius: 4 }}
+            />
+            {suggestions.length > 0 && (
+              <ul style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: '#fff',
+                border: '1px solid #ccc',
+                borderRadius: 4,
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                zIndex: 1000
+              }}>
+                {suggestions.map((suggestion, index) => (
+                  <li
+                    key={index}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    style={{
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      color: '#000', // Changed text color to black
+                      borderBottom: index < suggestions.length - 1 ? '1px solid #eee' : 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#f0f0f0';
+                      e.target.style.color = '#000'; // Ensure text color remains black on hover
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#fff';
+                      e.target.style.color = '#000'; // Ensure text color remains black on leave
+                    }}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <button
             style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
             onClick={() => {
@@ -142,8 +228,8 @@ function SupplierModal({ open, onClose }) {
 
                 doc.setFontSize(9);
                 doc.setTextColor(100, 100, 100);
-                doc.text('📍 123 Childcare Lane, City, State 12345 | 📞 (555) 123-4567', 55, 42);
-                doc.text('✉️ info@littlenest.com | 🌐 www.littlenest.com', 55, 46);
+                doc.text(' 123 Childcare Lane, City, State 12345 |  (555) 123-4567', 55, 42);
+                doc.text(' info@littlenest.com |  www.littlenest.com', 55, 46);
 
                 // Report title box
                 doc.setFillColor(245, 250, 255);
@@ -252,7 +338,7 @@ function SupplierModal({ open, onClose }) {
                 doc.setTextColor(150, 150, 150);
                 doc.text('© 2024 Little Nest Daycare. All rights reserved. Unauthorized distribution prohibited.', pageWidth / 2, footerY + 18, { align: 'center' });
 
-                doc.save(`Little-Nest-Suppliers-Report-${currentDate.toISOString().split('T')[0]}.pdf`);
+                doc.save(`Little-Nest-Suppliers-Report-${new Date().toISOString().split('T')[0]}.pdf`);
               } catch (e) {
                 console.error('Error generating Supplier PDF:', e);
                 alert('Error generating PDF. Please try again.');
@@ -277,12 +363,12 @@ function SupplierModal({ open, onClose }) {
             </tr>
           </thead>
           <tbody>
-            {suppliers.length === 0 ? (
+            {filteredSuppliers.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: 'center', padding: 16, color: '#888' }}>No suppliers</td>
               </tr>
             ) : (
-              suppliers.map((s, idx) => (
+              filteredSuppliers.map((s, idx) => (
                 <tr key={s._id || idx}>
                   <td style={{ padding: 8, border: '1px solid #ddd', color: '#000' }}>{s.name}</td>
                   <td style={{ padding: 8, border: '1px solid #ddd', color: '#000' }}>{s.address}</td>

@@ -284,8 +284,8 @@ function InventoryManagerDashboard() {
             boxShadow: '0 8px 32px rgba(52,9,147,0.18), 0 2px 8px rgba(52,9,147,0.10)',
             border: '1.5px solid #e0e0e0'
           }}>
-            <h1 style={{ fontWeight: 700, fontSize: 32, color: '#5964ffff', margin: 0 }}>Inventory Management</h1>
-            <div style={{ color: '#5964ffff', fontSize: 14, fontWeight: 400 }}>Real time stock overview</div>
+            <h1 style={{ fontWeight: 700, fontSize: 32, color: '#070f85ff', margin: 0 }}>Inventory Management</h1>
+            <div style={{ color: '#131c94ff', fontSize: 14, fontWeight: 400 }}>Real time stock overview</div>
           </div>
         </div>
 
@@ -420,7 +420,7 @@ function InventoryManagerDashboard() {
                       <tr key={idx}>
                         <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.name}</td>
                         <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.category}</td>
-                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.createdAt ? item.createdAt.substring(0, 10) : ''}</td>
+                        <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.createdOn ? item.createdOn.substring(0, 10) : ''}</td>
                         <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.issueStock || '-'}</td>
                         <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.stock}</td>
                         <td style={{ padding: 8, border: '1px solid #ddd' }}>{item.issueDate ? item.issueDate.substring(0, 10) : '-'}</td>
