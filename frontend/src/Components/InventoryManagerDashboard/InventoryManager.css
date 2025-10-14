@@ -1,0 +1,20 @@
+.finance-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure Nav bar is at the top and dashboard content starts below */
+.finance-container > nav, .finance-container > .Nav {
+  width: 100%;
+  margin-bottom: 0;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.finance-container > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
