@@ -5,20 +5,88 @@ import axios from 'axios';
 
 function TeacherDashboard() {
   const teacher = JSON.parse(localStorage.getItem('teacher') || 'null');
-  const [laForm, setLaForm] = useState({ childId: '', childName: '', title: '', date: '', description: '' });
-  const [laSubmitting, setLaSubmitting] = useState(false);
-  const [laError, setLaError] = useState('');
-  const [laSuccess, setLaSuccess] = useState('');
-  // Child details lookup state
-  const [childIdInput, setChildIdInput] = useState('');
-  const [childLoading, setChildLoading] = useState(false);
-  const [childError, setChildError] = useState('');
-  const [childDetails, setChildDetails] = useState(null);
+  // Combined form state for both activity and progress
+  const [combinedForm, setCombinedForm] = useState({
+    childId: '',
+    childName: '',
+    title: '',
+    date: '',
+    description: '',
+    activityType: 'general', // 'general' or 'progress_update'
+    literacy: 0,
+    mathematics: 0,
+    socialSkills: 0,
+    motorSkills: 0,
+    creativity: 0,
+    notes: ''
+  });
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+  const [childIdInvalid, setChildIdInvalid] = useState(false);
+  
+  // Function to handle child ID input - must start with C or c followed by numbers
+  const handleChildIdChange = (e) => {
+    const value = e.target.value;
+    // Allow Child ID to start with C or c followed by numbers (e.g., C123, c456)
+    const childIdRegex = /^[Cc]\d*$/;
+    
+    if (value === '' || childIdRegex.test(value)) {
+      setCombinedForm({ ...combinedForm, childId: value });
+      setChildIdInvalid(false); // Reset invalid state when valid input
+    } else {
+      setChildIdInvalid(true); // Set invalid state when wrong format is attempted
+    }
+  };
+  
+  // Function to handle child name input - only allow letters and spaces
+  const handleChildNameChange = (e) => {
+    const value = e.target.value;
+    // Allow only letters (a-z, A-Z), spaces, and periods - NO quotes, apostrophes, or hyphens
+    const lettersOnlyRegex = /^[a-zA-Z\s.]*$/;
+    
+    if (lettersOnlyRegex.test(value)) {
+      setCombinedForm({ ...combinedForm, childName: value });
+    }
+  };
+  
+  // Function to handle Learning Activities child ID input - must start with C or c followed by numbers
+  const handleLaChildIdChange = (e) => {
+    const value = e.target.value;
+    // Allow Child ID to start with C or c followed by numbers (e.g., C123, c456)
+    const childIdRegex = /^[Cc]\d*$/;
+    
+    if (value === '' || childIdRegex.test(value)) {
+      setLaChildId(value);
+      setLaChildIdInvalid(false); // Reset invalid state when valid input
+    } else {
+      setLaChildIdInvalid(true); // Set invalid state when wrong format is attempted
+    }
+  };
+  
   // Learning activities list state
   const [laChildId, setLaChildId] = useState('');
+  const [laChildIdInvalid, setLaChildIdInvalid] = useState(false);
   const [laList, setLaList] = useState([]);
   const [laLoadingList, setLaLoadingList] = useState(false);
   const [laListError, setLaListError] = useState('');
+  
+  // Update functionality state
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [updateForm, setUpdateForm] = useState({
+    title: '',
+    description: '',
+    notes: ''
+  });
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [updateError, setUpdateError] = useState('');
+  const [updateSuccess, setUpdateSuccess] = useState('');
+  
+  // Delete functionality state
+  const [deleteActivity, setDeleteActivity] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteSuccess, setDeleteSuccess] = useState('');
 
   return (
     <div className="t-dashboard">
@@ -44,166 +112,253 @@ function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Learning Activities Form */}
+        {/* Combined Learning Activity & Progress Form */}
         <div className="card full-width">
-          <h3>Add Learning Activity</h3>
-          <p className="subtitle" style={{ marginTop: -6 }}>Record a learning activity for a child.</p>
-          {laError && <div className="form-error">{laError}</div>}
-          {laSuccess && <div className="form-success">{laSuccess}</div>}
+          <h3>Record Learning Activity & Progress</h3>
+          <p className="subtitle" style={{ marginTop: -6 }}>Record learning activities and optionally track progress metrics in one form.</p>
+          {formError && <div className="form-error">{formError}</div>}
+          {formSuccess && <div className="form-success">{formSuccess}</div>}
           <form
             className="fm-form"
             onSubmit={async (e) => {
               e.preventDefault();
-              setLaError('');
-              setLaSuccess('');
-              const { childId, childName, title, date, description } = laForm;
+              setFormError('');
+              setFormSuccess('');
+              const { childId, childName, title, date, description, activityType, literacy, mathematics, socialSkills, motorSkills, creativity, notes } = combinedForm;
+              
               if (!childId.trim() || !childName.trim()) {
-                setLaError('Child ID and Child Name are required');
+                setFormError('Child ID and Child Name are required');
                 return;
               }
+
               try {
-                setLaSubmitting(true);
-                await axios.post('http://localhost:5000/learning-activities', {
+                setFormSubmitting(true);
+                
+                const payload = {
                   childId: childId.trim(),
                   childName: childName.trim(),
-                  title: title.trim() || undefined,
+                  title: title.trim() || (activityType === 'progress_update' ? 'Daily Progress Update' : undefined),
                   date: date || new Date().toISOString().slice(0, 10),
-                  description: description.trim() || undefined,
+                  description: description.trim() || (activityType === 'progress_update' ? 'Progress metrics update' : undefined),
                   recordedBy: teacher?.username || 'teacher',
+                  activityType: activityType,
+                  notes: notes.trim() || undefined
+                };
+
+                // Add progress metrics if this is a progress update
+                if (activityType === 'progress_update') {
+                  payload.progressMetrics = {
+                    literacy: parseInt(literacy) || 0,
+                    mathematics: parseInt(mathematics) || 0,
+                    socialSkills: parseInt(socialSkills) || 0,
+                    motorSkills: parseInt(motorSkills) || 0,
+                    creativity: parseInt(creativity) || 0
+                  };
+                }
+
+                await axios.post('http://localhost:5000/learning-activities', payload);
+                
+                setFormSuccess(activityType === 'progress_update' ? 
+                  'Activity and progress recorded successfully!' : 
+                  'Learning activity recorded successfully!');
+                
+                setCombinedForm({
+                  childId: '',
+                  childName: '',
+                  title: '',
+                  date: '',
+                  description: '',
+                  activityType: 'general',
+                  literacy: 0,
+                  mathematics: 0,
+                  socialSkills: 0,
+                  motorSkills: 0,
+                  creativity: 0,
+                  notes: ''
                 });
-                setLaSuccess('Learning activity recorded successfully');
-                setLaForm({ childId: '', childName: '', title: '', date: '', description: '' });
               } catch (err) {
-                setLaError(err?.response?.data?.message || 'Failed to record learning activity');
+                setFormError(err?.response?.data?.message || 'Failed to record activity');
               } finally {
-                setLaSubmitting(false);
+                setFormSubmitting(false);
               }
             }}
           >
+            {/* Basic Information */}
             <div className="row">
               <div className="col">
                 <label>Child ID</label>
                 <input
                   type="text"
-                  value={laForm.childId}
-                  onChange={(e) => setLaForm({ ...laForm, childId: e.target.value })}
-                  placeholder="Enter Child ID"
+                  value={combinedForm.childId}
+                  onChange={handleChildIdChange}
+                  placeholder="Enter Child ID (e.g., C123)"
                   required
+                  title="Child ID must start with C or c followed by numbers"
+                  style={{
+                    borderColor: childIdInvalid ? '#dc3545' : '#ced4da'
+                  }}
                 />
               </div>
               <div className="col">
                 <label>Child Name</label>
                 <input
                   type="text"
-                  value={laForm.childName}
-                  onChange={(e) => setLaForm({ ...laForm, childName: e.target.value })}
-                  placeholder="Enter Child Name"
+                  value={combinedForm.childName}
+                  onChange={handleChildNameChange}
+                  placeholder="Enter Child Name (letters only)"
                   required
-                />
-              </div>
-            </div>
-            <div className="row">
-              <div className="col">
-                <label>Activity Title (optional)</label>
-                <input
-                  type="text"
-                  value={laForm.title}
-                  onChange={(e) => setLaForm({ ...laForm, title: e.target.value })}
-                  placeholder="e.g., Shapes & Colors"
+                  title="Only letters, spaces, and periods are allowed"
                 />
               </div>
               <div className="col">
                 <label>Date</label>
                 <input
                   type="date"
-                  value={laForm.date}
-                  onChange={(e) => setLaForm({ ...laForm, date: e.target.value })}
+                  value={combinedForm.date}
+                  onChange={(e) => setCombinedForm({ ...combinedForm, date: e.target.value })}
                 />
               </div>
             </div>
+
+            {/* Activity Type Selection */}
+            <div className="row">
+              <div className="col">
+                <label>Record Type</label>
+                <select
+                  value={combinedForm.activityType}
+                  onChange={(e) => setCombinedForm({ ...combinedForm, activityType: e.target.value })}
+                  style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #ced4da', width: '100%' }}
+                >
+                  <option value="general">General Learning Activity</option>
+                  <option value="progress_update">Progress Update (with metrics)</option>
+                </select>
+              </div>
+              <div className="col">
+                <label>Activity Title {combinedForm.activityType === 'general' ? '(optional)' : '(auto-filled)'}</label>
+                <input
+                  type="text"
+                  value={combinedForm.title}
+                  onChange={(e) => setCombinedForm({ ...combinedForm, title: e.target.value })}
+                  placeholder={combinedForm.activityType === 'general' ? "e.g., Shapes & Colors" : "Daily Progress Update"}
+                  disabled={combinedForm.activityType === 'progress_update'}
+                />
+              </div>
+            </div>
+
             <div className="row">
               <div className="col full-width">
-                <label>Description (optional)</label>
+                <label>Description {combinedForm.activityType === 'general' ? '(optional)' : '(auto-filled)'}</label>
                 <textarea
                   rows="3"
-                  value={laForm.description}
-                  onChange={(e) => setLaForm({ ...laForm, description: e.target.value })}
-                  placeholder="Briefly describe the learning activity"
+                  value={combinedForm.description}
+                  onChange={(e) => setCombinedForm({ ...combinedForm, description: e.target.value })}
+                  placeholder={combinedForm.activityType === 'general' ? 
+                    "Briefly describe the learning activity" : 
+                    "Progress metrics update"}
+                  disabled={combinedForm.activityType === 'progress_update'}
                 />
               </div>
             </div>
+
+            {/* Progress Metrics Section - Only show when activityType is 'progress_update' */}
+            {combinedForm.activityType === 'progress_update' && (
+              <div className="progress-section">
+                <h4 style={{ marginBottom: 16 }}>Progress Metrics (0-100%)</h4>
+                
+                <div className="progress-item">
+                  <label>Literacy: {combinedForm.literacy}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={combinedForm.literacy}
+                    onChange={(e) => setCombinedForm({ ...combinedForm, literacy: e.target.value })}
+                    className="progress-slider"
+                  />
+                </div>
+                
+                <div className="progress-item">
+                  <label>Mathematics: {combinedForm.mathematics}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={combinedForm.mathematics}
+                    onChange={(e) => setCombinedForm({ ...combinedForm, mathematics: e.target.value })}
+                    className="progress-slider"
+                  />
+                </div>
+                
+                <div className="progress-item">
+                  <label>Social Skills: {combinedForm.socialSkills}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={combinedForm.socialSkills}
+                    onChange={(e) => setCombinedForm({ ...combinedForm, socialSkills: e.target.value })}
+                    className="progress-slider"
+                  />
+                </div>
+                
+                <div className="progress-item">
+                  <label>Motor Skills: {combinedForm.motorSkills}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={combinedForm.motorSkills}
+                    onChange={(e) => setCombinedForm({ ...combinedForm, motorSkills: e.target.value })}
+                    className="progress-slider"
+                  />
+                </div>
+                
+                <div className="progress-item">
+                  <label>Creativity: {combinedForm.creativity}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={combinedForm.creativity}
+                    onChange={(e) => setCombinedForm({ ...combinedForm, creativity: e.target.value })}
+                    className="progress-slider"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* Notes Section */}
+            <div className="row">
+              <div className="col full-width">
+                <label>
+                  {combinedForm.activityType === 'progress_update' ? 
+                    'Notes / Observations' : 
+                    'Additional Notes (optional)'}
+                </label>
+                <textarea
+                  rows="3"
+                  value={combinedForm.notes}
+                  onChange={(e) => setCombinedForm({ ...combinedForm, notes: e.target.value })}
+                  placeholder={combinedForm.activityType === 'progress_update' ? 
+                    "Record observations about the child's progress today" : 
+                    "Any additional notes about this activity"}
+                />
+              </div>
+            </div>
+            
             <div className="actions" style={{ marginTop: 10 }}>
-              <button className="btn" type="submit" disabled={laSubmitting}>
-                {laSubmitting ? 'Saving...' : 'Save Activity'}
+              <button 
+                className={`btn ${combinedForm.activityType === 'progress_update' ? 'progress-btn' : ''}`} 
+                type="submit" 
+                disabled={formSubmitting}
+              >
+                {formSubmitting ? 'Saving...' : 
+                  combinedForm.activityType === 'progress_update' ? 
+                    'Save Activity & Progress' : 
+                    'Save Activity'}
               </button>
             </div>
           </form>
-        </div>
-
-        {/* View Child Details by ID */}
-        <div className="card full-width">
-          <h3>View Child Details</h3>
-          <div className="actions" style={{ gap: 8 }}>
-            <input
-              type="text"
-              placeholder="Enter Child ID"
-              value={childIdInput}
-              onChange={(e) => setChildIdInput(e.target.value)}
-              style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
-            />
-            <button
-              className="btn"
-              type="button"
-              disabled={childLoading}
-              onClick={async () => {
-                setChildError('');
-                setChildDetails(null);
-                const id = childIdInput.trim();
-                if (!id) { setChildError('Please enter a Child ID'); return; }
-                try {
-                  setChildLoading(true);
-                  const res = await axios.get(`http://localhost:5000/children/${encodeURIComponent(id)}`);
-                  if (res.data?.success) {
-                    setChildDetails(res.data.data);
-                  } else {
-                    setChildError(res.data?.message || 'Child not found');
-                  }
-                } catch (err) {
-                  setChildError(err?.response?.data?.message || 'Child not found');
-                } finally {
-                  setChildLoading(false);
-                }
-              }}
-            >
-              {childLoading ? 'Loading...' : 'Get Details'}
-            </button>
-          </div>
-          {childError && <div className="form-error" style={{ marginTop: 10 }}>{childError}</div>}
-          {childDetails && (
-            <div className="table-wrap" style={{ marginTop: 12 }}>
-              <table className="table">
-                <tbody>
-                  <tr><th>Child ID</th><td>{childDetails.childId}</td></tr>
-                  <tr><th>Name</th><td>{childDetails.name}</td></tr>
-                  <tr><th>Age</th><td>{childDetails.age}</td></tr>
-                  <tr><th>Gender</th><td>{childDetails.gender}</td></tr>
-                  <tr><th>Parent</th><td>{childDetails.parent}</td></tr>
-                  <tr><th>Health Notes</th><td>{childDetails.healthNotes || '-'}</td></tr>
-                  <tr><th>Check-in Time</th><td>{childDetails.checkInTime || '-'}</td></tr>
-                  <tr><th>Check-out Time</th><td>{childDetails.checkOutTime || '-'}</td></tr>
-                  <tr><th>Meal Updates</th><td>{childDetails.meals || '-'}</td></tr>
-                  <tr><th>Nap Times</th><td>{childDetails.napTimes || '-'}</td></tr>
-                  <tr><th>Health Status</th><td>{childDetails.healthStatus || '-'}</td></tr>
-                  <tr><th>Accident/Incident Reports</th><td>{childDetails.incidents || '-'}</td></tr>
-                  <tr><th>Medication Updates</th><td>{childDetails.medication || '-'}</td></tr>
-                  <tr><th>Mood & Behavior</th><td>{childDetails.moodBehavior || '-'}</td></tr>
-                  <tr><th>Interaction with Other Kids</th><td>{childDetails.interactions || '-'}</td></tr>
-                  <tr><th>Approved By</th><td>{childDetails.approvedBy ? (childDetails.approvedBy.name || childDetails.approvedBy.username || childDetails.approvedBy._id) : '-'}</td></tr>
-                  <tr><th>Created</th><td>{childDetails.createdAt ? new Date(childDetails.createdAt).toLocaleString() : '-'}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
 
         {/* View Learning Activities by Child ID */}
@@ -212,10 +367,17 @@ function TeacherDashboard() {
           <div className="actions" style={{ gap: 8 }}>
             <input
               type="text"
-              placeholder="Enter Child ID"
+              placeholder="Enter Child ID (e.g., C123)"
               value={laChildId}
-              onChange={(e) => setLaChildId(e.target.value)}
-              style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
+              onChange={handleLaChildIdChange}
+              title="Child ID must start with C or c followed by numbers"
+              style={{ 
+                padding: '10px', 
+                borderRadius: 8, 
+                border: `1px solid ${laChildIdInvalid ? '#dc3545' : '#ddd'}`, 
+                flex: 1, 
+                minWidth: 220 
+              }}
             />
             <button
               className="btn"
@@ -253,12 +415,13 @@ function TeacherDashboard() {
                   <th>Title</th>
                   <th>Description</th>
                   <th>Recorded By</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {laList.length === 0 ? (
                   <tr>
-                    <td colSpan="4" style={{ textAlign: 'center' }}>
+                    <td colSpan="5" style={{ textAlign: 'center' }}>
                       {laLoadingList ? 'Loading...' : 'No activities to show'}
                     </td>
                   </tr>
@@ -269,12 +432,306 @@ function TeacherDashboard() {
                       <td>{a.title || '-'}</td>
                       <td>{a.description || '-'}</td>
                       <td>{a.recordedBy || '-'}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button
+                            className="btn"
+                            style={{ 
+                              padding: '6px 12px', 
+                              fontSize: '12px', 
+                              background: '#ffc107', 
+                              color: '#000',
+                              border: 'none'
+                            }}
+                            onClick={() => {
+                              setSelectedActivity(a);
+                              setUpdateForm({
+                                title: a.title || '',
+                                description: a.description || '',
+                                notes: a.notes || ''
+                              });
+                              setUpdateError('');
+                              setUpdateSuccess('');
+                            }}
+                          >
+                            Update
+                          </button>
+                          <button
+                            className="btn"
+                            style={{ 
+                              padding: '6px 12px', 
+                              fontSize: '12px', 
+                              background: '#dc3545', 
+                              color: '#fff',
+                              border: 'none'
+                            }}
+                            onClick={() => {
+                              setDeleteActivity(a);
+                              setDeleteError('');
+                              setDeleteSuccess('');
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
+          
+          {/* Update Form Modal */}
+          {selectedActivity && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000
+            }}>
+              <div style={{
+                background: 'white',
+                padding: '24px',
+                borderRadius: '8px',
+                width: '90%',
+                maxWidth: '500px',
+                maxHeight: '80vh',
+                overflow: 'auto'
+              }}>
+                <h3>Update Learning Activity</h3>
+                <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
+                  Activity ID: {selectedActivity._id} | Child ID: {selectedActivity.childId}
+                </p>
+                
+                {updateError && <div className="form-error">{updateError}</div>}
+                {updateSuccess && <div className="form-success">{updateSuccess}</div>}
+                
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setUpdateError('');
+                  setUpdateSuccess('');
+                  
+                  try {
+                    setUpdateLoading(true);
+                    const response = await axios.put(`http://localhost:5000/learning-activities/${selectedActivity._id}`, {
+                      title: updateForm.title.trim(),
+                      description: updateForm.description.trim(),
+                      notes: updateForm.notes.trim()
+                    });
+                    
+                    if (response.data?.success) {
+                      setUpdateSuccess('Activity updated successfully!');
+                      // Refresh the activities list
+                      const res = await axios.get(`http://localhost:5000/learning-activities/by-child/${encodeURIComponent(laChildId)}`);
+                      if (res.data?.success) {
+                        setLaList(res.data.data || []);
+                      }
+                      // Close modal after 1.5 seconds
+                      setTimeout(() => {
+                        setSelectedActivity(null);
+                        setUpdateSuccess('');
+                      }, 1500);
+                    }
+                  } catch (err) {
+                    setUpdateError(err?.response?.data?.message || 'Failed to update activity');
+                  } finally {
+                    setUpdateLoading(false);
+                  }
+                }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Title</label>
+                    <input
+                      type="text"
+                      value={updateForm.title}
+                      onChange={(e) => setUpdateForm({ ...updateForm, title: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px', 
+                        border: '1px solid #ced4da', 
+                        borderRadius: '4px' 
+                      }}
+                      required
+                    />
+                  </div>
+                  
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Description</label>
+                    <textarea
+                      rows="3"
+                      value={updateForm.description}
+                      onChange={(e) => setUpdateForm({ ...updateForm, description: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px', 
+                        border: '1px solid #ced4da', 
+                        borderRadius: '4px',
+                        resize: 'vertical'
+                      }}
+                      required
+                    />
+                  </div>
+                  
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: '500' }}>Notes</label>
+                    <textarea
+                      rows="2"
+                      value={updateForm.notes}
+                      onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
+                      style={{ 
+                        width: '100%', 
+                        padding: '8px 12px', 
+                        border: '1px solid #ced4da', 
+                        borderRadius: '4px',
+                        resize: 'vertical'
+                      }}
+                      placeholder="Optional notes..."
+                    />
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedActivity(null);
+                        setUpdateError('');
+                        setUpdateSuccess('');
+                      }}
+                      style={{
+                        padding: '8px 16px',
+                        border: '1px solid #ced4da',
+                        background: 'white',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      disabled={updateLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn"
+                      disabled={updateLoading}
+                      style={{ padding: '8px 16px' }}
+                    >
+                      {updateLoading ? 'Updating...' : 'Update Activity'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+          
+          {/* Delete Confirmation Modal */}
+          {deleteActivity && (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000
+            }}>
+              <div style={{
+                background: 'white',
+                padding: '24px',
+                borderRadius: '8px',
+                width: '90%',
+                maxWidth: '400px'
+              }}>
+                <h3 style={{ color: '#dc3545', marginBottom: '16px' }}>Delete Learning Activity</h3>
+                <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
+                  Are you sure you want to delete this activity?
+                </p>
+                <div style={{ 
+                  background: '#f8f9fa', 
+                  padding: '12px', 
+                  borderRadius: '4px', 
+                  marginBottom: '16px',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px' }}><strong>Activity ID:</strong> {deleteActivity._id}</p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px' }}><strong>Child ID:</strong> {deleteActivity.childId}</p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '14px' }}><strong>Title:</strong> {deleteActivity.title || 'N/A'}</p>
+                  <p style={{ margin: '0', fontSize: '14px' }}><strong>Date:</strong> {deleteActivity.date || (deleteActivity.createdAt ? new Date(deleteActivity.createdAt).toLocaleDateString() : 'N/A')}</p>
+                </div>
+                
+                {deleteError && <div className="form-error">{deleteError}</div>}
+                {deleteSuccess && <div className="form-success">{deleteSuccess}</div>}
+                
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteActivity(null);
+                      setDeleteError('');
+                      setDeleteSuccess('');
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      border: '1px solid #ced4da',
+                      background: 'white',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    disabled={deleteLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setDeleteError('');
+                      setDeleteSuccess('');
+                      
+                      try {
+                        setDeleteLoading(true);
+                        const response = await axios.delete(`http://localhost:5000/learning-activities/${deleteActivity._id}`);
+                        
+                        if (response.data?.success) {
+                          setDeleteSuccess('Activity deleted successfully!');
+                          // Refresh the activities list
+                          const res = await axios.get(`http://localhost:5000/learning-activities/by-child/${encodeURIComponent(laChildId)}`);
+                          if (res.data?.success) {
+                            setLaList(res.data.data || []);
+                          }
+                          // Close modal after 1.5 seconds
+                          setTimeout(() => {
+                            setDeleteActivity(null);
+                            setDeleteSuccess('');
+                          }, 1500);
+                        }
+                      } catch (err) {
+                        setDeleteError(err?.response?.data?.message || 'Failed to delete activity');
+                      } finally {
+                        setDeleteLoading(false);
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? 'Deleting...' : 'Delete Activity'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
