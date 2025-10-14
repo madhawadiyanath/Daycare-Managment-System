@@ -293,6 +293,36 @@ function AdminDashboard() {
     </button>
   );
 
+  // Search handlers
+  const handleSearchChange = (setter) => (e) => {
+    const value = e.target.value;
+    setter(value);
+  };
+
+  const filteredManagers = fmList.filter(manager =>
+    manager.name.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    manager.email.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    manager.phone.startsWith(searchTerm)
+  );
+
+  const filteredTeachers = tList.filter(teacher =>
+    teacher.name.toLowerCase().startsWith(teacherSearchTerm.toLowerCase()) ||
+    teacher.email.toLowerCase().startsWith(teacherSearchTerm.toLowerCase()) ||
+    teacher.phone.startsWith(teacherSearchTerm)
+  );
+
+  const filteredStaff = sList.filter(staff =>
+    staff.name.toLowerCase().startsWith(staffSearchTerm.toLowerCase()) ||
+    staff.email.toLowerCase().startsWith(staffSearchTerm.toLowerCase()) ||
+    staff.phone.startsWith(staffSearchTerm)
+  );
+
+  const filteredInventoryManagers = imList.filter(manager =>
+    manager.name.toLowerCase().startsWith(inventorySearchTerm.toLowerCase()) ||
+    manager.email.toLowerCase().startsWith(inventorySearchTerm.toLowerCase()) ||
+    manager.phone.startsWith(inventorySearchTerm)
+  );
+
   return (
     <div className="admin-dashboard">
       <div className="admin-header">
@@ -461,7 +491,7 @@ function AdminDashboard() {
                     type="text"
                     placeholder="Search managers..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleSearchChange(setSearchTerm)}
                     style={{
                       padding: '8px 12px',
                       borderRadius: '4px',
@@ -497,30 +527,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(searchTerm
-                        ? fmList.filter(m => 
-                            (m.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                            (m.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                            (m.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                            (m.phone?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-                          )
-                        : fmList
-                      ).length === 0 ? (
+                      {filteredManagers.length === 0 ? (
                         <tr>
                           <td colSpan="5" style={{ textAlign: 'center' }}>
                             {searchTerm ? 'No matching managers found' : 'No finance managers yet'}
                           </td>
                         </tr>
                       ) : (
-                        (searchTerm
-                          ? fmList.filter(m => 
-                              (m.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                              (m.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                              (m.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                              (m.phone?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-                            )
-                          : fmList
-                        ).map((m) => (
+                        filteredManagers.map((m) => (
                           <tr key={m._id}>
                             {editingId === m._id ? (
                               <>
@@ -772,7 +786,7 @@ function AdminDashboard() {
                     type="text"
                     placeholder="Search teachers..."
                     value={teacherSearchTerm}
-                    onChange={(e) => setTeacherSearchTerm(e.target.value)}
+                    onChange={handleSearchChange(setTeacherSearchTerm)}
                     style={{
                       padding: '8px 12px',
                       borderRadius: '4px',
@@ -809,32 +823,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(teacherSearchTerm
-                        ? tList.filter(t => 
-                            (t.name?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                            (t.username?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                            (t.email?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                            (t.phone?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                            (t.subject?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase())
-                          )
-                        : tList
-                      ).length === 0 ? (
+                      {filteredTeachers.length === 0 ? (
                         <tr>
                           <td colSpan="6" style={{ textAlign: 'center' }}>
                             {teacherSearchTerm ? 'No matching teachers found' : 'No teachers yet'}
                           </td>
                         </tr>
                       ) : (
-                        (teacherSearchTerm
-                          ? tList.filter(t => 
-                              (t.name?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                              (t.username?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                              (t.email?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                              (t.phone?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase()) ||
-                              (t.subject?.toLowerCase() || '').includes(teacherSearchTerm.toLowerCase())
-                            )
-                          : tList
-                        ).map((t) => (
+                        filteredTeachers.map((t) => (
                           <tr key={t._id}>
                             {tEditingId === t._id ? (
                               <>
@@ -1088,7 +1084,7 @@ function AdminDashboard() {
                     type="text"
                     placeholder="Search staff..."
                     value={staffSearchTerm}
-                    onChange={(e) => setStaffSearchTerm(e.target.value)}
+                    onChange={handleSearchChange(setStaffSearchTerm)}
                     style={{
                       padding: '8px 12px',
                       borderRadius: '4px',
@@ -1125,32 +1121,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(staffSearchTerm
-                        ? sList.filter(s => 
-                            (s.name?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                            (s.username?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                            (s.email?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                            (s.phone?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                            (s.role?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase())
-                          )
-                        : sList
-                      ).length === 0 ? (
+                      {filteredStaff.length === 0 ? (
                         <tr>
                           <td colSpan="6" style={{ textAlign: 'center' }}>
                             {staffSearchTerm ? 'No matching staff found' : 'No staff yet'}
                           </td>
                         </tr>
                       ) : (
-                        (staffSearchTerm
-                          ? sList.filter(s => 
-                              (s.name?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                              (s.username?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                              (s.email?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                              (s.phone?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase()) ||
-                              (s.role?.toLowerCase() || '').includes(staffSearchTerm.toLowerCase())
-                            )
-                          : sList
-                        ).map((s) => (
+                        filteredStaff.map((s) => (
                           <tr key={s._id}>
                             {sEditingId === s._id ? (
                               <>
@@ -1334,7 +1312,7 @@ function AdminDashboard() {
                     type="text"
                     placeholder="Search inventory managers..."
                     value={inventorySearchTerm}
-                    onChange={(e) => setInventorySearchTerm(e.target.value)}
+                    onChange={handleSearchChange(setInventorySearchTerm)}
                     style={{
                       padding: '8px 12px',
                       borderRadius: '4px',
@@ -1370,30 +1348,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(inventorySearchTerm
-                        ? imList.filter(im => 
-                            (im.name?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase()) ||
-                            (im.username?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase()) ||
-                            (im.email?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase()) ||
-                            (im.phone?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase())
-                          )
-                        : imList
-                      ).length === 0 ? (
+                      {filteredInventoryManagers.length === 0 ? (
                         <tr>
                           <td colSpan="5" style={{ textAlign: 'center' }}>
                             {inventorySearchTerm ? 'No matching inventory managers found' : 'No inventory managers yet'}
                           </td>
                         </tr>
                       ) : (
-                        (inventorySearchTerm
-                          ? imList.filter(im => 
-                              (im.name?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase()) ||
-                              (im.username?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase()) ||
-                              (im.email?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase()) ||
-                              (im.phone?.toLowerCase() || '').includes(inventorySearchTerm.toLowerCase())
-                            )
-                          : imList
-                        ).map((m) => (
+                        filteredInventoryManagers.map((m) => (
                           <tr key={m._id}>
                             {imEditingId === m._id ? (
                               <>

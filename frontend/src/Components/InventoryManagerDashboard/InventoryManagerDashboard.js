@@ -450,7 +450,7 @@ function InventoryManagerDashboard() {
             <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 900, boxShadow: '0 2px 16px rgba(0,0,0,0.2)', maxHeight: '80vh', overflowY: 'auto' }}>
               <h2 style={{ marginBottom: 24 }}>Expired Items</h2>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-                <button
+                {/* <button
                   style={{ background: '#19d219', color: '#fff', fontWeight: 600, border: 'none', borderRadius: 4, padding: '10px 24px', fontSize: 16, cursor: 'pointer' }}
                   onClick={() => {
                     const doc = new jsPDF('l', 'pt', 'a4');
@@ -477,7 +477,7 @@ function InventoryManagerDashboard() {
                   }}
                 >
                   Download PDF
-                </button>
+                </button> */}
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
                 <thead>
