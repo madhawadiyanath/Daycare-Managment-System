@@ -260,13 +260,14 @@ function ExpenseDetails() {
     });
   };
 
-  // Filter expenses based on search term
-  const filteredExpenses = expenses.filter(expense =>
-    expense.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    expense.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    expense.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    new Date(expense.date).toLocaleDateString().includes(searchTerm)
-  );
+  // Filter expenses based on search term (matches beginning of words in title only)
+  const filteredExpenses = searchTerm ? expenses.filter(expense => {
+    const searchLower = searchTerm.toLowerCase();
+    const titleLower = expense.title?.toLowerCase() || '';
+    // Check if title starts with search term or has a word that starts with search term
+    return titleLower.startsWith(searchLower) || 
+           titleLower.split(/\s+/).some(word => word.startsWith(searchLower));
+  }) : expenses;
 
   // Download PDF function
   const downloadPDF = () => {
