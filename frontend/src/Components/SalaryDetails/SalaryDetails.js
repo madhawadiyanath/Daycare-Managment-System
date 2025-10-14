@@ -263,13 +263,16 @@ function SalaryDetails() {
     });
   };
 
-  // Filter salaries based on search term
-  const filteredSalaries = salaries.filter(salary =>
-    salary.empID?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salary.empName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salary.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salary.month?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter salaries based on search term (matches beginning of words in name and ID only)
+  const filteredSalaries = searchTerm ? salaries.filter(salary => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Check if employee name or ID starts with the search term
+    return (
+      (salary.empName && salary.empName.toLowerCase().startsWith(searchLower)) ||
+      (salary.empID && salary.empID.toLowerCase().startsWith(searchLower))
+    );
+  }) : salaries;
 
   // Download PDF function
   const downloadPDF = () => {
