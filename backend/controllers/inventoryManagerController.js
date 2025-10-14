@@ -1,3 +1,155 @@
+// Issue inventory item
+const IssueItem = require('../models/issueItem');
+const nodemailer = require('nodemailer');
+// Email notification for low stock
+const sendLowStockEmail = async (lowStockItems) => {
+  // Get all inventory managers' emails
+  console.log("Sending low stock email to inventory managers...");
+  const managers = await InventoryManager.find().select('email');
+  const emails = managers.map(m => m.email).filter(Boolean);
+  console.log("Manager emails:", emails);
+  if (emails.length === 0 || !lowStockItems || lowStockItems.length === 0) return;
+
+  // Configure nodemailer (use your SMTP credentials)
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "inventorymanagementsystemday@gmail.com",
+      pass: "kaxrsujnmqkxahly",
+    },
+  });
+  
+  // Build email content
+  const itemList = lowStockItems.map(item =>
+    `<li><b>${item.name}</b> (${item.category}) - Stock: ${item.stock}</li>`
+  ).join('');
+  const html = `
+    <h3>Low Stock Alert</h3>
+    <p>The following inventory items are low in stock (5 units or less):</p>
+    <ul>${itemList}</ul>
+    <p>Please restock as soon as possible.</p>
+  `;
+
+  await transporter.sendMail({
+    from: 'inventorymanagementsystemday@gmail.com',
+    to: emails.join(','),
+    subject: 'Low Stock Alert - Inventory Management',
+    html,
+  });
+};
+const issueInventoryItem = async (req, res) => {
+  try {
+    console.log("Issuing inventory item...");
+    const { category, name, quantity, issueDate } = req.body;
+    if (!category || !name || !quantity || !issueDate) {
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+    // Optionally, check if enough stock exists and decrement
+    const item = await InventoryItem.findOne({ name, category });
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+    if (item.stock < quantity) {
+      return res.status(400).json({ success: false, message: 'Not enough stock' });
+    }
+    item.stock -= quantity;
+    await item.save();
+    const newIssue = new IssueItem({ category, name, quantity, issueDate });
+    await newIssue.save();
+    // Check for low stock and send email if needed
+    const lowStockItems = await InventoryItem.find({ stock: { $gt: 0, $lte: 5 } });
+    console.log("Low stock items:", lowStockItems);
+    if (lowStockItems.length > 0) {
+      await sendLowStockEmail(lowStockItems);
+    }
+    res.json({ success: true, issue: newIssue });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// Delete inventory item by id
+const deleteInventoryItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await InventoryItem.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+    res.json({ success: true, message: 'Deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// Update inventory item by id
+const updateInventoryItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, category, stock, expiry, supplier } = req.body;
+    const updated = await InventoryItem.findByIdAndUpdate(
+      id,
+      { $set: { name, category, stock, expiry, supplier } },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+    // Check for low stock and send email if needed
+    const lowStockItems = await InventoryItem.find({ stock: { $gt: 0, $lte: 5 } });
+    if (lowStockItems.length > 0) {
+      await sendLowStockEmail(lowStockItems);
+    }
+    res.json({ success: true, item: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// Get all inventory items
+const getInventoryItems = async (req, res) => {
+  try {
+    const items = await InventoryItem.find().sort({ createdOn: -1 });
+    res.json({ success: true, data: items });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// Add new inventory item (using InventoryItem model)
+const InventoryItem = require('../models/inventoryItem');
+const createInventoryItem = async (req, res) => {
+  try {
+    console.log("items adding")
+    const { name, category, stock, expiry, supplier, manufacture } = req.body;
+    if (!name || !category || stock === undefined) {
+      return res.status(400).json({ success: false, message: 'Name, category, and stock are required' });
+    }
+    const newItem = new InventoryItem({
+      name,
+      category,
+      stock,
+      expiry,
+      supplier,
+      manufacture,
+    });
+    await newItem.save();
+    return res.json({ success: true, message: 'Item added successfully' });
+  } catch (err) {
+     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Controller to check for low stock and send email
+const notifyLowStock = async (req, res) => {
+  try {
+    // Find items with stock <= 5
+    const lowStockItems = await InventoryItem.find({ stock: { $gt: 0, $lte: 5 } });
+    if (lowStockItems.length === 0) {
+      return res.json({ success: true, message: 'No low stock items.' });
+    }
+    await sendLowStockEmail(lowStockItems);
+    res.json({ success: true, message: 'Low stock notification sent.', items: lowStockItems });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 const InventoryManager = require('../models/InventoryManagerModel');
 
 // Create an inventory manager
@@ -126,4 +278,10 @@ module.exports = {
   updateInventoryManager,
   deleteInventoryManager,
   loginInventoryManager,
+  createInventoryItem,
+  getInventoryItems,
+  updateInventoryItem,
+  deleteInventoryItem,
+  issueInventoryItem,
+  notifyLowStock,
 };
