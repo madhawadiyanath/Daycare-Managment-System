@@ -18,6 +18,9 @@ import {
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 
+// Import logo - using require to handle special characters in filename
+const logoImage = require('../../assets/WhatsApp Image 2025-08-05 at 19.02.34_b673857a - Copy.jpg');
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,7 +35,8 @@ ChartJS.register(
 export default function LearningActivities() {
   const parentUser = JSON.parse(localStorage.getItem('user') || 'null');
   const navigate = useNavigate();
-  const [childId, setChildId] = useState('');
+  // Child ID must always start with capital 'C' followed by digits (e.g., C123)
+  const [childId, setChildId] = useState('C');
   const [childIdInvalid, setChildIdInvalid] = useState(false);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -49,6 +53,15 @@ export default function LearningActivities() {
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [performancePeriod, setPerformancePeriod] = useState('week'); // 'week' or 'month'
   const [activeTab, setActiveTab] = useState('current'); // 'current', 'weekly', 'monthly'
+  
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activityTypeFilter, setActivityTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date'); // 'date', 'title'
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc', 'desc'
+  
+  // View activity modal state
+  const [viewActivity, setViewActivity] = useState(null);
 
   useEffect(() => {
     // Require parent login to access Learning & Assessment page
@@ -59,18 +72,46 @@ export default function LearningActivities() {
     // optionally prefill childId if your parent profile stores a default child
   }, []);
 
-  // Function to handle child ID input - must start with C or c followed by numbers
+  // Function to handle child ID input - enforce starting 'C' and digits only after
   const handleChildIdChange = (e) => {
-    const value = e.target.value;
-    // Allow Child ID to start with C or c followed by numbers (e.g., C123, c456)
-    const childIdRegex = /^[Cc]\d*$/;
-    
-    if (value === '' || childIdRegex.test(value)) {
-      setChildId(value);
-      setChildIdInvalid(false); // Reset invalid state when valid input
-    } else {
-      setChildIdInvalid(true); // Set invalid state when wrong format is attempted
+    let value = e.target.value.toUpperCase();
+    // Always ensure it starts with 'C'
+    if (!value.startsWith('C')) {
+      value = 'C' + value.replace(/[^0-9]/g, '');
     }
+    // Remove any non-digits after the first char
+    value = 'C' + value.slice(1).replace(/[^0-9]/g, '');
+    setChildId(value);
+    setChildIdInvalid(false);
+  };
+
+  // Prevent deleting the leading 'C'
+  const handleChildIdKeyDown = (e) => {
+    if ((e.key === 'Backspace' || e.key === 'Delete')) {
+      const input = e.target;
+      const selectionStart = input.selectionStart;
+      const selectionEnd = input.selectionEnd;
+      // If cursor at position 1 (after C) and deleting backwards is fine;
+      // Block if trying to delete the first character or whole field
+      const fullSelection = selectionStart === 0 && selectionEnd > 0;
+      const deletingFirst = selectionStart === 0 && selectionEnd === 0;
+      const deletingRangeIncludingFirst = selectionStart === 0 && selectionEnd >= 1;
+      if (fullSelection || deletingFirst || deletingRangeIncludingFirst) {
+        e.preventDefault();
+        // Optionally clear digits if user presses delete/backspace at start
+        if (childId.length > 1) {
+          setChildId('C');
+        }
+      }
+    }
+  };
+
+  // Sanitize pasted content
+  const handleChildIdPaste = (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData.getData('text') || '').toUpperCase();
+    const digits = text.replace(/[^0-9]/g, '');
+    setChildId('C' + digits);
   };
 
   const fetchActivities = async () => {
@@ -311,13 +352,20 @@ export default function LearningActivities() {
       doc.setLineWidth(3);
       doc.line(10, 10, pageWidth - 10, 10);
 
-      // Company branding (using similar style as childcare dashboard)
-      doc.setFillColor(30, 58, 138);
-      doc.rect(15, 15, 30, 30, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      doc.text('LITTLE', 30, 28, { align: 'center' });
-      doc.text('NEST', 30, 35, { align: 'center' });
+      // Load and add logo image
+      try {
+        // Add logo image to PDF (30x30mm size)
+        doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+      } catch (logoError) {
+        console.warn('Could not load logo, using fallback text:', logoError);
+        // Fallback to text logo if image loading fails
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 15, 30, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('LITTLE', 30, 28, { align: 'center' });
+        doc.text('NEST', 30, 35, { align: 'center' });
+      }
 
       // Company name + tagline
       doc.setFontSize(24);
@@ -582,6 +630,58 @@ export default function LearningActivities() {
     return insights;
   };
   
+  // Filter and sort activities
+  const getFilteredAndSortedActivities = () => {
+    let filtered = [...list];
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(activity => 
+        (activity.title && activity.title.toLowerCase().includes(term)) ||
+        (activity.description && activity.description.toLowerCase().includes(term)) ||
+        (activity.notes && activity.notes.toLowerCase().includes(term)) ||
+        (activity.recordedBy && activity.recordedBy.toLowerCase().includes(term))
+      );
+    }
+    
+    // Apply activity type filter
+    if (activityTypeFilter !== 'all') {
+      filtered = filtered.filter(activity => activity.activityType === activityTypeFilter);
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let compareValue = 0;
+      
+      if (sortBy === 'date') {
+        const dateA = new Date(a.date || a.createdAt);
+        const dateB = new Date(b.date || b.createdAt);
+        compareValue = dateA - dateB;
+      } else if (sortBy === 'title') {
+        const titleA = (a.title || '').toLowerCase();
+        const titleB = (b.title || '').toLowerCase();
+        compareValue = titleA.localeCompare(titleB);
+      }
+      
+      return sortOrder === 'asc' ? compareValue : -compareValue;
+    });
+    
+    return filtered;
+  };
+  
+  const filteredActivities = getFilteredAndSortedActivities();
+  
+  // Toggle sort order when clicking same sort option
+  const handleSortChange = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('desc');
+    }
+  };
+  
   return (
     <div>
       <Nav />
@@ -598,16 +698,20 @@ export default function LearningActivities() {
             <div className="actions" style={{ gap: 8, marginBottom: 16 }}>
               <input
                 type="text"
-                placeholder="Enter Child ID (e.g., C123)"
+                placeholder="C### (e.g., C123)"
                 value={childId}
                 onChange={handleChildIdChange}
-                title="Child ID must start with C or c followed by numbers"
+                onKeyDown={handleChildIdKeyDown}
+                onPaste={handleChildIdPaste}
+                maxLength={10}
+                title="Child ID: fixed 'C' followed by digits only"
                 style={{ 
                   padding: '10px', 
                   borderRadius: 8, 
                   border: `1px solid ${childIdInvalid ? '#dc3545' : '#ddd'}`, 
                   flex: 1, 
-                  minWidth: 220 
+                  minWidth: 220, 
+                  textTransform: 'uppercase' 
                 }}
               />
               <button 
@@ -918,10 +1022,10 @@ export default function LearningActivities() {
         
         {/* Activity Filters and Views */}
         <div className="card full-width" style={{ marginTop: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3>Learning Activities</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+            <h3 style={{ margin: 0 }}>Learning Activities</h3>
             
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               {/* View Mode Selector */}
               <select 
                 value={viewMode} 
@@ -957,58 +1061,179 @@ export default function LearningActivities() {
             </div>
           )}
           
+          {/* Modern Search and Filter Bar */}
+          <div className="filter-bar">
+            {/* Search Input */}
+            <div className="search-box">
+              <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search activities, notes, or teacher..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  className="clear-search"
+                  onClick={() => setSearchTerm('')}
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            
+            {/* Filter and Sort Controls */}
+            <div className="filter-controls">
+              <div className="filter-group">
+                <label htmlFor="activityTypeFilter">Type:</label>
+                <select
+                  id="activityTypeFilter"
+                  className="filter-select"
+                  value={activityTypeFilter}
+                  onChange={(e) => setActivityTypeFilter(e.target.value)}
+                >
+                  <option value="all">All Types</option>
+                  <option value="general">General Activity</option>
+                  <option value="progress_update">Progress Update</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label htmlFor="sortBy">Sort By:</label>
+                <select
+                  id="sortBy"
+                  className="filter-select"
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                >
+                  <option value="date">Date</option>
+                  <option value="title">Title</option>
+                </select>
+              </div>
+              
+              <button 
+                className="sort-order-btn"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                {sortOrder === 'asc' ? '↑' : '↓'}
+              </button>
+            </div>
+          </div>
+          
+          {/* Results Count */}
+          {list.length > 0 && (
+            <div className="results-info">
+              Showing <strong>{filteredActivities.length}</strong> of <strong>{list.length}</strong> activities
+              {searchTerm && ` matching "${searchTerm}"`}
+            </div>
+          )}
+          
           {error && <div className="form-error" style={{ marginTop: 10 }}>{error}</div>}
           
-          <div className="table-wrap" style={{ marginTop: 12 }}>
-            <table className="table">
+          <div className="modern-table-wrap">
+            <table className="modern-table">
               <thead>
                 <tr>
-                  <th>Date</th>
+                  <th className="sortable" onClick={() => handleSortChange('date')}>
+                    Date {sortBy === 'date' && <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                  </th>
                   <th>Type</th>
-                  <th>Title</th>
+                  <th className="sortable" onClick={() => handleSortChange('title')}>
+                    Title {sortBy === 'title' && <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                  </th>
                   <th>Description</th>
                   <th>Progress Metrics</th>
                   <th>Notes</th>
                   <th>Recorded By</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {list.length === 0 ? (
+                {filteredActivities.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center' }}>
-                      {loading ? 'Loading...' : 'No activities to show'}
+                    <td colSpan="8" className="empty-state">
+                      <div className="empty-state-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <p>{loading ? 'Loading activities...' : searchTerm || activityTypeFilter !== 'all' ? 'No activities match your filters' : 'No activities to show'}</p>
+                        {(searchTerm || activityTypeFilter !== 'all') && !loading && (
+                          <button 
+                            className="btn-secondary"
+                            onClick={() => {
+                              setSearchTerm('');
+                              setActivityTypeFilter('all');
+                            }}
+                          >
+                            Clear Filters
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  list.map((activity) => (
-                    <tr key={activity._id}>
-                      <td>{activity.date || (activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : '-')}</td>
-                      <td>
-                        <span style={{ 
-                          padding: '2px 8px', 
-                          borderRadius: 12, 
-                          fontSize: 12, 
-                          background: activity.activityType === 'progress_update' ? '#28a745' : '#007bff',
-                          color: 'white'
-                        }}>
-                          {activity.activityType === 'progress_update' ? 'Progress' : 'Activity'}
+                  filteredActivities.map((activity, index) => (
+                    <tr key={activity._id} className="table-row" style={{ animationDelay: `${index * 0.05}s` }}>
+                      <td className="date-cell">
+                        <span className="date-display">
+                          {activity.date || (activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : '-')}
                         </span>
                       </td>
-                      <td>{activity.title || '-'}</td>
-                      <td>{activity.description || '-'}</td>
                       <td>
-                        {activity.progressMetrics ? (
-                          <div style={{ fontSize: 12 }}>
-                            <div>L: {activity.progressMetrics.literacy}%</div>
-                            <div>M: {activity.progressMetrics.mathematics}%</div>
-                            <div>S: {activity.progressMetrics.socialSkills}%</div>
-                            <div>Motor: {activity.progressMetrics.motorSkills}%</div>
-                            <div>C: {activity.progressMetrics.creativity}%</div>
-                          </div>
-                        ) : '-'}
+                        <span className={`activity-badge ${activity.activityType === 'progress_update' ? 'badge-progress' : 'badge-activity'}`}>
+                          {activity.activityType === 'progress_update' ? 'Progress Update' : 'General Activity'}
+                        </span>
                       </td>
-                      <td>{activity.notes || '-'}</td>
-                      <td>{activity.recordedBy || '-'}</td>
+                      <td className="title-cell">{activity.title || '-'}</td>
+                      <td className="description-cell">{activity.description || '-'}</td>
+                      <td className="metrics-cell">
+                        {activity.progressMetrics ? (
+                          <div className="progress-metrics">
+                            <div className="metric-item">
+                              <span className="metric-label">Literacy:</span>
+                              <span className="metric-value">{activity.progressMetrics.literacy}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Math:</span>
+                              <span className="metric-value">{activity.progressMetrics.mathematics}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Social:</span>
+                              <span className="metric-value">{activity.progressMetrics.socialSkills}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Motor:</span>
+                              <span className="metric-value">{activity.progressMetrics.motorSkills}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Creative:</span>
+                              <span className="metric-value">{activity.progressMetrics.creativity}%</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="no-data">-</span>
+                        )}
+                      </td>
+                      <td className="notes-cell">{activity.notes || '-'}</td>
+                      <td className="teacher-cell">
+                        <span className="teacher-name">{activity.recordedBy || '-'}</span>
+                      </td>
+                      <td className="action-cell">
+                        <button
+                          className="btn-view"
+                          onClick={() => setViewActivity(activity)}
+                          title="View Details"
+                        >
+                          👁️ View
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -1017,6 +1242,203 @@ export default function LearningActivities() {
           </div>
         </div>
       </div>
+      
+      {/* View Activity Modal */}
+      {viewActivity && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px',
+          overflowY: 'auto'
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '32px',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '700px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h3 style={{ 
+                margin: 0, 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                WebkitBackgroundClip: 'text', 
+                WebkitTextFillColor: 'transparent',
+                fontSize: '24px',
+                fontWeight: 700
+              }}>
+                📋 Activity Details
+              </h3>
+              <button
+                onClick={() => setViewActivity(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '28px',
+                  cursor: 'pointer',
+                  color: '#999',
+                  lineHeight: '1',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#f1f3f5';
+                  e.currentTarget.style.color = '#000';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'none';
+                  e.currentTarget.style.color = '#999';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '20px' }}>
+              {/* Activity Type Badge */}
+              <div>
+                <span className={`activity-badge ${viewActivity.activityType === 'progress_update' ? 'badge-progress' : 'badge-activity'}`} style={{ fontSize: '14px', padding: '6px 16px' }}>
+                  {viewActivity.activityType === 'progress_update' ? '📊 Progress Update' : '📝 General Activity'}
+                </span>
+              </div>
+              
+              {/* Basic Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Date</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#212529' }}>
+                    {viewActivity.date || (viewActivity.createdAt ? new Date(viewActivity.createdAt).toLocaleDateString() : '-')}
+                  </p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Recorded By</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#212529' }}>{viewActivity.recordedBy || '-'}</p>
+                </div>
+              </div>
+              
+              {/* Child Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Child ID</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#007bff' }}>{viewActivity.childId || '-'}</p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Child Name</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#212529' }}>{viewActivity.childName || '-'}</p>
+                </div>
+              </div>
+              
+              {/* Title */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Title</label>
+                <p style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#212529' }}>{viewActivity.title || '-'}</p>
+              </div>
+              
+              {/* Description */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Description</label>
+                <p style={{ margin: 0, fontSize: '14px', color: '#495057', lineHeight: 1.6 }}>{viewActivity.description || '-'}</p>
+              </div>
+              
+              {/* Progress Metrics */}
+              {viewActivity.progressMetrics && (
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '12px', display: 'block' }}>Progress Metrics</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #28a745' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Literacy</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#28a745' }}>{viewActivity.progressMetrics.literacy}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #007bff' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Mathematics</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#007bff' }}>{viewActivity.progressMetrics.mathematics}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #ffc107' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Social Skills</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#ffc107' }}>{viewActivity.progressMetrics.socialSkills}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #dc3545' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Motor Skills</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#dc3545' }}>{viewActivity.progressMetrics.motorSkills}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #6f42c1' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Creativity</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#6f42c1' }}>{viewActivity.progressMetrics.creativity}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Notes */}
+              {viewActivity.notes && (
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Notes</label>
+                  <p style={{ 
+                    margin: 0, 
+                    fontSize: '14px', 
+                    color: '#495057', 
+                    background: '#f8f9fa', 
+                    padding: '12px', 
+                    borderRadius: '8px',
+                    fontStyle: 'italic',
+                    lineHeight: 1.6
+                  }}>
+                    {viewActivity.notes}
+                  </p>
+                </div>
+              )}
+              
+              {/* Close Button */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+                <button
+                  onClick={() => setViewActivity(null)}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 32px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(102, 126, 234, 0.4)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
