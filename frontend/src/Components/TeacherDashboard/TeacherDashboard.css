@@ -5,5 +5,181 @@
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 .card { background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-.btn { display: inline-block; padding: 10px 14px; border-radius: 8px; background: #0a58ca; color: #fff; text-decoration: none; transition: background .15s ease-in-out; }
+.btn { display: inline-block; padding: 10px 14px; border-radius: 8px; background: #0a58ca; color: #fff; text-decoration: none; transition: background .15s ease-in-out; border: none; cursor: pointer; }
 .btn:hover { background: #0848a7; }
+
+/* Progress tracking styles */
+.progress-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.progress-item {
+  margin-bottom: 16px;
+}
+
+.progress-item label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #495057;
+  font-size: 14px;
+}
+
+.progress-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #dee2e6;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0a58ca;
+  cursor: pointer;
+  transition: background 0.15s ease-in-out;
+}
+
+.progress-slider::-webkit-slider-thumb:hover {
+  background: #0848a7;
+}
+
+.progress-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #0a58ca;
+  cursor: pointer;
+  border: none;
+}
+
+.progress-btn {
+  background: #28a745 !important;
+  margin-top: 10px;
+}
+
+.progress-btn:hover {
+  background: #218838 !important;
+}
+
+.form-error {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.form-success {
+  background: #d4edda;
+  color: #155724;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #c3e6cb;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.fm-form .row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.fm-form .col {
+  display: flex;
+  flex-direction: column;
+}
+
+.fm-form .col.full-width {
+  grid-column: 1 / -1;
+}
+
+.fm-form label {
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.fm-form input, .fm-form textarea {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.fm-form input:focus, .fm-form textarea:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Child name validation styles */
+.fm-form input[title*="letters"] {
+  position: relative;
+}
+
+.fm-form input[title*="letters"]:invalid {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.fm-form select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.fm-form select:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Activity Type specific styling */
+.record-type-section {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  margin: 16px 0;
+}
+
+/* Conditional sections animation */
+.progress-section {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
