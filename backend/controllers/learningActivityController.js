@@ -50,8 +50,92 @@ async function getLearningActivityById(req, res) {
   }
 }
 
+// PUT /learning-activities/:id
+async function updateLearningActivity(req, res) {
+  try {
+    const { id } = req.params;
+    const { title, description, notes } = req.body;
+
+    // Find the existing activity
+    const existingActivity = await LearningActivity.findById(id);
+    if (!existingActivity) {
+      return res.status(404).json({ success: false, message: 'Learning activity not found' });
+    }
+
+    // Prepare update payload
+    const updatePayload = {};
+    if (title !== undefined) updatePayload.title = String(title).trim();
+    if (description !== undefined) updatePayload.description = String(description).trim();
+    if (notes !== undefined) updatePayload.notes = String(notes).trim();
+    
+    // Add update timestamp
+    updatePayload.updatedAt = new Date();
+
+    // Update the activity
+    const updatedActivity = await LearningActivity.findByIdAndUpdate(
+      id,
+      updatePayload,
+      { new: true, runValidators: true }
+    );
+
+    return res.json({ 
+      success: true, 
+      data: updatedActivity,
+      message: 'Learning activity updated successfully'
+    });
+  } catch (err) {
+    console.error('Update learning activity error:', err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation error: ' + err.message 
+      });
+    }
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error updating learning activity' 
+    });
+  }
+}
+
+// DELETE /learning-activities/:id
+async function deleteLearningActivity(req, res) {
+  try {
+    const { id } = req.params;
+
+    // Find the existing activity
+    const existingActivity = await LearningActivity.findById(id);
+    if (!existingActivity) {
+      return res.status(404).json({ success: false, message: 'Learning activity not found' });
+    }
+
+    // Delete the activity
+    await LearningActivity.findByIdAndDelete(id);
+
+    return res.json({ 
+      success: true, 
+      message: 'Learning activity deleted successfully',
+      data: { id: existingActivity._id, childId: existingActivity.childId }
+    });
+  } catch (err) {
+    console.error('Delete learning activity error:', err);
+    if (err.name === 'CastError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid activity ID format' 
+      });
+    }
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error deleting learning activity' 
+    });
+  }
+}
+
 module.exports = {
   createLearningActivity,
   listLearningActivitiesByChild,
   getLearningActivityById,
+  updateLearningActivity,
+  deleteLearningActivity,
 };
