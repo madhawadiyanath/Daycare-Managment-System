@@ -243,11 +243,11 @@ export default function ViewChildren() {
               .filter((c) => {
                 const q = search.trim().toLowerCase();
                 if (!q) return true;
-                return (
-                  (c.name || '').toLowerCase().includes(q) ||
-                  (c.childId || '').toLowerCase().includes(q) ||
-                  (c.gender || '').toLowerCase().includes(q)
-                );
+                const name = String(c.name || '').toLowerCase().trim();
+                if (!name) return false;
+                if (name.startsWith(q)) return true; // beginning of the phrase
+                const tokens = name.split(/\s+/);
+                return tokens.some(t => t.startsWith(q)); // beginning of any word
               })
               .sort((a, b) => {
                 if (sortKey === 'age') {

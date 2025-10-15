@@ -21,12 +21,16 @@ export default function CreateChild() {
       return;
     }
     
-    // Special validation for age field - minimum age is 1
+    // Special validation for age field - allow only a single digit 1-9
     if (name === 'age') {
-      const ageValue = parseInt(value) || 0;
-      if (ageValue < 1 && value !== '') {
-        return; // Don't update if age is less than 1
+      const digits = String(value).replace(/\D/g, '');
+      const one = digits.slice(0, 1);
+      if (one === '0') {
+        setChildData({ ...childData, age: '' });
+        return;
       }
+      setChildData({ ...childData, age: one });
+      return;
     }
     
     setChildData({ ...childData, [name]: value });
@@ -107,12 +111,14 @@ export default function CreateChild() {
 
         <label>Age</label>
         <input
-          type="number"
+          type="text"
+          inputMode="numeric"
+          pattern="[1-9]"
+          maxLength={1}
           name="age"
           value={childData.age}
           onChange={handleChange}
-          min="1"
-          placeholder="Enter age"
+          placeholder="Enter age (1-9)"
           required
         />
 
