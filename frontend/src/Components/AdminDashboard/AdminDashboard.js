@@ -82,6 +82,140 @@ function AdminDashboard() {
     }
   }
 
+  // Function to download Finance Managers as PDF
+  const downloadFinanceManagersPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Header Section
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(3);
+      doc.line(10, 10, pageWidth - 10, 10);
+      
+      // Add logo
+      try {
+        doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+      } catch (logoError) {
+        console.error('Error loading logo:', logoError);
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 15, 30, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('LITTLE', 30, 28, { align: 'center' });
+        doc.text('NEST', 30, 35, { align: 'center' });
+      }
+      
+      // Company name and details
+      doc.setFontSize(24);
+      doc.setTextColor(30, 58, 138);
+      doc.text('LITTLE NEST DAYCARE', 55, 28);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(70, 130, 180);
+      doc.text('Quality Childcare & Early Learning Center', 55, 36);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('📍 123 Childcare Lane, City, State 12345 | 📞 (555) 123-4567', 55, 42);
+      doc.text('✉️ info@littlenest.com | 🌐 www.littlenest.com', 55, 46);
+      
+      // Report title section
+      doc.setFillColor(245, 250, 255);
+      doc.rect(10, 55, pageWidth - 20, 25, 'F');
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(2);
+      doc.rect(10, 55, pageWidth - 20, 25);
+      
+      doc.setDrawColor(70, 130, 180);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 57, pageWidth - 24, 21);
+      
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text('FINANCE MANAGERS REPORT', pageWidth / 2, 70, { align: 'center' });
+      
+      // Report metadata
+      doc.setFillColor(250, 252, 255);
+      doc.rect(10, 85, pageWidth - 20, 18, 'F');
+      doc.setDrawColor(200, 220, 240);
+      doc.setLineWidth(0.5);
+      doc.rect(10, 85, pageWidth - 20, 18);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const currentDate = new Date();
+      doc.text(`Report Generated: ${currentDate.toLocaleDateString()} at ${currentDate.toLocaleTimeString()}`, 15, 92);
+      doc.text(`Total Managers: ${fmList.length}`, 15, 97);
+      
+      // Prepare table data
+      const tableData = fmList.map((manager) => [
+        manager.name || 'N/A',
+        manager.username || 'N/A',
+        manager.email || 'N/A',
+        manager.phone || '-'
+      ]);
+      
+      // Add professional table
+      autoTable(doc, {
+        head: [['Name', 'Username', 'Email', 'Phone']],
+        body: tableData,
+        startY: 110,
+        theme: 'grid',
+        alternateRowStyles: {
+          fillColor: [248, 251, 255]
+        },
+        headStyles: {
+          fillColor: [30, 58, 138],
+          textColor: [255, 255, 255],
+          fontSize: 11,
+          fontStyle: 'bold',
+          halign: 'center',
+          cellPadding: { top: 5, right: 3, bottom: 5, left: 3 }
+        },
+        bodyStyles: {
+          fontSize: 9,
+          cellPadding: { top: 4, right: 3, bottom: 4, left: 3 },
+          lineColor: [180, 200, 220],
+          lineWidth: 0.3
+        },
+        styles: {
+          lineColor: [70, 130, 180],
+          lineWidth: 0.5,
+          cellPadding: 4
+        },
+        columnStyles: {
+          0: { halign: 'left', fontStyle: 'bold' },
+          1: { halign: 'left' },
+          2: { halign: 'left' },
+          3: { halign: 'left' }
+        }
+      });
+      
+      // Footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          pageWidth - 20,
+          pageHeight - 10,
+          { align: 'right' }
+        );
+      }
+      
+      // Save the PDF
+      doc.save(`Finance_Managers_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   // Fetch finance managers
   const fetchManagers = async () => {
     try {
@@ -500,6 +634,25 @@ function AdminDashboard() {
                       fontSize: '14px'
                     }}
                   />
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={downloadFinanceManagersPDF}
+                    style={{
+                      backgroundColor: '#1e3a8a',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 15px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                    title="Download PDF Report"
+                  >
+                    <i className="fas fa-file-pdf"></i> PDF
+                  </button>
                   <button
                     className="btn btn-secondary"
                     type="button"
