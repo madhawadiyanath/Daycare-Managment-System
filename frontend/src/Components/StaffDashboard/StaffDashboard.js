@@ -30,6 +30,10 @@ function StaffDashboard() {
   // Active section state
   const [activeSection, setActiveSection] = useState('pending');
 
+  const tzOffsetMs = new Date().getTimezoneOffset() * 60000;
+  const todayStr = new Date(Date.now() - tzOffsetMs).toISOString().slice(0, 10);
+  const maxStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000 - tzOffsetMs).toISOString().slice(0, 10);
+
   async function fetchEventsForMonth(baseDate = new Date()) {
     try {
       setEvLoading(true);
@@ -430,6 +434,19 @@ function StaffDashboard() {
                 setEvtError('Title and Date are required');
                 return;
               }
+              // Enforce date within [today, today+30 days]
+              try {
+                const sel = new Date(eventForm.date);
+                const min = new Date(todayStr);
+                const max = new Date(maxStr);
+                if (isNaN(sel.getTime()) || sel < min || sel > max) {
+                  setEvtError(`Date must be between ${todayStr} and ${maxStr}`);
+                  return;
+                }
+              } catch (_) {
+                setEvtError('Invalid date');
+                return;
+              }
               setEvtSubmitting(true);
               try {
                 const payload = {
@@ -462,8 +479,14 @@ function StaffDashboard() {
                 <input
                   type="text"
                   value={eventForm.title}
-                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (/^[A-Za-z\s]*$/.test(v)) {
+                      setEventForm({ ...eventForm, title: v });
+                    }
+                  }}
                   placeholder="Event title"
+                  pattern="[A-Za-z\s]*"
                 />
               </div>
               <div className="col">
@@ -472,6 +495,8 @@ function StaffDashboard() {
                   type="date"
                   value={eventForm.date}
                   onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                  min={todayStr}
+                  max={maxStr}
                 />
               </div>
             </div>
@@ -543,7 +568,13 @@ function StaffDashboard() {
                                 className="table-input"
                                 type="text"
                                 value={evEditForm.title}
-                                onChange={(e) => setEvEditForm({ ...evEditForm, title: e.target.value })}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  if (/^[A-Za-z\s]*$/.test(v)) {
+                                    setEvEditForm({ ...evEditForm, title: v });
+                                  }
+                                }}
+                                pattern="[A-Za-z\s]*"
                               />
                             </td>
                             <td>
