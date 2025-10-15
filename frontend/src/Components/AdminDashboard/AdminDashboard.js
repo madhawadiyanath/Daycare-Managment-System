@@ -52,7 +52,10 @@ function AdminDashboard() {
 
   // Input sanitizers: only letters/spaces for names, only digits for phones
   const onlyLetters = (val) => val.replace(/[^a-zA-Z\s]/g, '');
-  const onlyDigits = (val) => val.replace(/\D/g, '');
+  // UPDATED: keep only digits and cap length to 10
+  const onlyDigits = (val) => val.replace(/\D/g, '').slice(0, 10);
+  // NEW: Sri Lankan phone validator (exactly 10 digits starting with 0)
+  const isSLPhone = (val) => /^0\d{9}$/.test((val || '').trim());
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -403,6 +406,11 @@ function AdminDashboard() {
                     setFmError('Name, Email, Username and Password are required');
                     return;
                   }
+                  // NEW: phone validation
+                  if (fmForm.phone && !isSLPhone(fmForm.phone)) {
+                    setFmError('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
+                    return;
+                  }
                   setFmSubmitting(true);
                   try {
                     const res = await axios.post('http://localhost:5000/admin/finance-managers', {
@@ -589,6 +597,11 @@ function AdminDashboard() {
                                           alert('Name, Email, and Username are required');
                                           return;
                                         }
+                                        // NEW: phone validation
+                                        if (editForm.phone && !isSLPhone(editForm.phone)) {
+                                          alert('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
+                                          return;
+                                        }
                                         try {
                                           await axios.put(`http://localhost:5000/admin/finance-managers/${m._id}`, {
                                             name: editForm.name.trim(),
@@ -693,6 +706,11 @@ function AdminDashboard() {
                   setTError('');
                   if (!tForm.name.trim() || !tForm.email.trim() || !tForm.username.trim() || !tForm.password) {
                     setTError('Name, Email, Username and Password are required');
+                    return;
+                  }
+                  // NEW: phone validation
+                  if (tForm.phone && !isSLPhone(tForm.phone)) {
+                    setTError('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
                     return;
                   }
                   try {
@@ -892,6 +910,11 @@ function AdminDashboard() {
                                           alert('Name, Email, and Username are required');
                                           return;
                                         }
+                                        // NEW: phone validation
+                                        if (tEditForm.phone && !isSLPhone(tEditForm.phone)) {
+                                          alert('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
+                                          return;
+                                        }
                                         try {
                                           await axios.put(`http://localhost:5000/admin/teachers/${t._id}`, {
                                             name: tEditForm.name.trim(),
@@ -985,6 +1008,11 @@ function AdminDashboard() {
                   setSError('');
                   if (!sForm.name.trim() || !sForm.email.trim() || !sForm.username.trim() || !sForm.password) {
                     setSError('Name, Email, Username and Password are required');
+                    return;
+                  }
+                  // NEW: phone validation
+                  if (sForm.phone && !isSLPhone(sForm.phone)) {
+                    setSError('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
                     return;
                   }
                   try {
@@ -1152,6 +1180,11 @@ function AdminDashboard() {
                                   <div className="row-actions">
                                     <button className="btn" type="button" onClick={async () => {
                                       if (!sEditForm.name.trim() || !sEditForm.email.trim() || !sEditForm.username.trim()) { alert('Name, Email, and Username are required'); return; }
+                                      // NEW: phone validation
+                                      if (sEditForm.phone && !isSLPhone(sEditForm.phone)) {
+                                        alert('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
+                                        return;
+                                      }
                                       try {
                                         await axios.put(`http://localhost:5000/admin/staff/${s._id}`, {
                                           name: sEditForm.name.trim(),
@@ -1218,6 +1251,11 @@ function AdminDashboard() {
                   setImError('');
                   if (!imForm.name.trim() || !imForm.email.trim() || !imForm.username.trim() || !imForm.password) {
                     setImError('Name, Email, Username and Password are required');
+                    return;
+                  }
+                  // NEW: phone validation
+                  if (imForm.phone && !isSLPhone(imForm.phone)) {
+                    setImError('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
                     return;
                   }
                   setImSubmitting(true);
@@ -1408,6 +1446,11 @@ function AdminDashboard() {
                                         // Basic validation
                                         if (!imEditForm.name.trim() || !imEditForm.email.trim() || !imEditForm.username.trim()) {
                                           alert('Name, Email, and Username are required');
+                                          return;
+                                        }
+                                        // NEW: phone validation
+                                        if (imEditForm.phone && !isSLPhone(imEditForm.phone)) {
+                                          alert('Phone must be a Sri Lankan number: exactly 10 digits starting with 0 (e.g., 0712345678).');
                                           return;
                                         }
                                         try {
