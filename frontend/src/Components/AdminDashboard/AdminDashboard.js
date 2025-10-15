@@ -16,6 +16,7 @@ function AdminDashboard() {
   const [fmList, setFmList] = useState([]);
   const [fmLoading, setFmLoading] = useState(false);
   const [fmError, setFmError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [fmForm, setFmForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
   const [fmSubmitting, setFmSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -25,6 +26,7 @@ function AdminDashboard() {
   const [tList, setTList] = useState([]);
   const [tLoading, setTLoading] = useState(false);
   const [tError, setTError] = useState('');
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
   const [tForm, setTForm] = useState({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
   const [tEditingId, setTEditingId] = useState(null);
   const [tEditForm, setTEditForm] = useState({ name: '', email: '', phone: '', subject: '', username: '', password: '' });
@@ -33,6 +35,7 @@ function AdminDashboard() {
   const [sList, setSList] = useState([]);
   const [sLoading, setSLoading] = useState(false);
   const [sError, setSError] = useState('');
+  const [staffSearchTerm, setStaffSearchTerm] = useState('');
   const [sForm, setSForm] = useState({ name: '', email: '', phone: '', role: '', username: '', password: '' });
   const [sEditingId, setSEditingId] = useState(null);
   const [sEditForm, setSEditForm] = useState({ name: '', email: '', phone: '', role: '', username: '', password: '' });
@@ -41,6 +44,7 @@ function AdminDashboard() {
   const [imList, setImList] = useState([]);
   const [imLoading, setImLoading] = useState(false);
   const [imError, setImError] = useState('');
+  const [inventorySearchTerm, setInventorySearchTerm] = useState('');
   const [imForm, setImForm] = useState({ name: '', email: '', phone: '', username: '', password: '' });
   const [imSubmitting, setImSubmitting] = useState(false);
   const [imEditingId, setImEditingId] = useState(null);
@@ -289,6 +293,36 @@ function AdminDashboard() {
     </button>
   );
 
+  // Search handlers
+  const handleSearchChange = (setter) => (e) => {
+    const value = e.target.value;
+    setter(value);
+  };
+
+  const filteredManagers = fmList.filter(manager =>
+    manager.name.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    manager.email.toLowerCase().startsWith(searchTerm.toLowerCase()) ||
+    manager.phone.startsWith(searchTerm)
+  );
+
+  const filteredTeachers = tList.filter(teacher =>
+    teacher.name.toLowerCase().startsWith(teacherSearchTerm.toLowerCase()) ||
+    teacher.email.toLowerCase().startsWith(teacherSearchTerm.toLowerCase()) ||
+    teacher.phone.startsWith(teacherSearchTerm)
+  );
+
+  const filteredStaff = sList.filter(staff =>
+    staff.name.toLowerCase().startsWith(staffSearchTerm.toLowerCase()) ||
+    staff.email.toLowerCase().startsWith(staffSearchTerm.toLowerCase()) ||
+    staff.phone.startsWith(staffSearchTerm)
+  );
+
+  const filteredInventoryManagers = imList.filter(manager =>
+    manager.name.toLowerCase().startsWith(inventorySearchTerm.toLowerCase()) ||
+    manager.email.toLowerCase().startsWith(inventorySearchTerm.toLowerCase()) ||
+    manager.phone.startsWith(inventorySearchTerm)
+  );
+
   return (
     <div className="admin-dashboard">
       <div className="admin-header">
@@ -450,17 +484,33 @@ function AdminDashboard() {
 
             {/* List Finance Managers */}
             <div className="card">
-              <div className="list-header">
+              <div className="list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Finance Managers</h3>
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={async () => {
-                    await fetchManagers();
-                  }}
-                >
-                  Refresh
-                </button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Search managers..."
+                    value={searchTerm}
+                    onChange={handleSearchChange(setSearchTerm)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      width: '250px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={async () => {
+                      await fetchManagers();
+                      setSearchTerm('');
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
               </div>
               {fmLoading ? (
                 <p>Loading...</p>
@@ -477,12 +527,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {fmList.length === 0 ? (
+                      {filteredManagers.length === 0 ? (
                         <tr>
-                          <td colSpan="5" style={{ textAlign: 'center' }}>No finance managers yet</td>
+                          <td colSpan="5" style={{ textAlign: 'center' }}>
+                            {searchTerm ? 'No matching managers found' : 'No finance managers yet'}
+                          </td>
                         </tr>
                       ) : (
-                        fmList.map((m) => (
+                        filteredManagers.map((m) => (
                           <tr key={m._id}>
                             {editingId === m._id ? (
                               <>
@@ -727,15 +779,33 @@ function AdminDashboard() {
 
             {/* List Teachers */}
             <div className="card">
-              <div className="list-header">
+              <div className="list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Teachers</h3>
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={async () => { await fetchTeachers(); }}
-                >
-                  Refresh
-                </button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Search teachers..."
+                    value={teacherSearchTerm}
+                    onChange={handleSearchChange(setTeacherSearchTerm)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      width: '250px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={async () => {
+                      await fetchTeachers();
+                      setTeacherSearchTerm('');
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
               </div>
               {tLoading ? (
                 <p>Loading...</p>
@@ -753,12 +823,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {tList.length === 0 ? (
+                      {filteredTeachers.length === 0 ? (
                         <tr>
-                          <td colSpan="6" style={{ textAlign: 'center' }}>No teachers yet</td>
+                          <td colSpan="6" style={{ textAlign: 'center' }}>
+                            {teacherSearchTerm ? 'No matching teachers found' : 'No teachers yet'}
+                          </td>
                         </tr>
                       ) : (
-                        tList.map((t) => (
+                        filteredTeachers.map((t) => (
                           <tr key={t._id}>
                             {tEditingId === t._id ? (
                               <>
@@ -1005,15 +1077,33 @@ function AdminDashboard() {
 
             {/* List Staff */}
             <div className="card">
-              <div className="list-header">
+              <div className="list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Staff</h3>
-                <button
-                  className="btn btn-secondary"
-                  type="button"
-                  onClick={async () => { await fetchStaff(); }}
-                >
-                  Refresh
-                </button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Search staff..."
+                    value={staffSearchTerm}
+                    onChange={handleSearchChange(setStaffSearchTerm)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      width: '250px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={async () => {
+                      await fetchStaff();
+                      setStaffSearchTerm('');
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
               </div>
               {sLoading ? (
                 <p>Loading...</p>
@@ -1031,12 +1121,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {sList.length === 0 ? (
+                      {filteredStaff.length === 0 ? (
                         <tr>
-                          <td colSpan="6" style={{ textAlign: 'center' }}>No staff yet</td>
+                          <td colSpan="6" style={{ textAlign: 'center' }}>
+                            {staffSearchTerm ? 'No matching staff found' : 'No staff yet'}
+                          </td>
                         </tr>
                       ) : (
-                        sList.map((s) => (
+                        filteredStaff.map((s) => (
                           <tr key={s._id}>
                             {sEditingId === s._id ? (
                               <>
@@ -1213,11 +1305,33 @@ function AdminDashboard() {
 
             {/* List Inventory Managers */}
             <div className="card">
-              <div className="list-header">
+              <div className="list-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Inventory Managers</h3>
-                <button className="btn btn-secondary" type="button" onClick={async () => { await fetchInventoryManagers(); }}>
-                  Refresh
-                </button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Search inventory managers..."
+                    value={inventorySearchTerm}
+                    onChange={handleSearchChange(setInventorySearchTerm)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      width: '250px',
+                      fontSize: '14px'
+                    }}
+                  />
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={async () => {
+                      await fetchInventoryManagers();
+                      setInventorySearchTerm('');
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
               </div>
               {imLoading ? (
                 <p>Loading...</p>
@@ -1234,12 +1348,14 @@ function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {imList.length === 0 ? (
+                      {filteredInventoryManagers.length === 0 ? (
                         <tr>
-                          <td colSpan="5" style={{ textAlign: 'center' }}>No inventory managers yet</td>
+                          <td colSpan="5" style={{ textAlign: 'center' }}>
+                            {inventorySearchTerm ? 'No matching inventory managers found' : 'No inventory managers yet'}
+                          </td>
                         </tr>
                       ) : (
-                        imList.map((m) => (
+                        filteredInventoryManagers.map((m) => (
                           <tr key={m._id}>
                             {imEditingId === m._id ? (
                               <>

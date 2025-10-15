@@ -249,13 +249,14 @@ function IncomeDetails() {
     });
   };
 
-  // Filter incomes based on search term
-  const filteredIncomes = incomes.filter(income =>
-    income.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    income.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    income.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    new Date(income.date).toLocaleDateString().includes(searchTerm)
-  );
+  // Filter incomes based on search term (matches beginning of words in title only)
+  const filteredIncomes = searchTerm ? incomes.filter(income => {
+    const searchLower = searchTerm.toLowerCase();
+    const titleLower = income.title?.toLowerCase() || '';
+    // Check if title starts with search term or has a word that starts with search term
+    return titleLower.startsWith(searchLower) || 
+           titleLower.split(/\s+/).some(word => word.startsWith(searchLower));
+  }) : incomes;
 
   // Download PDF function
   const downloadPDF = () => {

@@ -27,10 +27,37 @@ function ProfitLoss() {
   // Handle date range input changes
   const handleDateChange = (e) => {
     const { name, value } = e.target;
-    setDateRange({
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    const selectedDate = new Date(value);
+    const currentDate = new Date();
+    
+    // Reset any previous errors
+    setError('');
+    
+    // Check if the selected date is in the future
+    if (selectedDate > currentDate) {
+      setError(`Cannot select a future date for ${name === 'startDate' ? 'start date' : 'end date'}`);
+      return;
+    }
+    
+    // Update the date range
+    const newDateRange = {
       ...dateRange,
       [name]: value
-    });
+    };
+    
+    // Additional validation when both dates are selected
+    if (newDateRange.startDate && newDateRange.endDate) {
+      const startDate = new Date(newDateRange.startDate);
+      const endDate = new Date(newDateRange.endDate);
+      
+      if (startDate > endDate) {
+        setError('Start date cannot be after end date');
+        return;
+      }
+    }
+    
+    setDateRange(newDateRange);
   };
 
   // Fetch data from both APIs and calculate profit/loss
@@ -395,6 +422,9 @@ function ProfitLoss() {
     }
   };
 
+  // Get today's date in YYYY-MM-DD format for the max attribute
+  const today = new Date().toISOString().split('T')[0];
+  
   return (
     <div className="profit-loss-container">
       <Nav />
@@ -423,6 +453,7 @@ function ProfitLoss() {
                   name="startDate"
                   value={dateRange.startDate}
                   onChange={handleDateChange}
+                  max={today}
                   required
                 />
               </div>
@@ -434,6 +465,7 @@ function ProfitLoss() {
                   name="endDate"
                   value={dateRange.endDate}
                   onChange={handleDateChange}
+                  max={today}
                   required
                 />
               </div>

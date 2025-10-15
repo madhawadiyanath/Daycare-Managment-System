@@ -2,14 +2,66 @@ import React, { useEffect, useState } from 'react';
 import Nav from '../Nav/Nav';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './LearningActivities.css';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
+
+// Import logo - using require to handle special characters in filename
+const logoImage = require('../../assets/WhatsApp Image 2025-08-05 at 19.02.34_b673857a - Copy.jpg');
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function LearningActivities() {
   const parentUser = JSON.parse(localStorage.getItem('user') || 'null');
   const navigate = useNavigate();
-  const [childId, setChildId] = useState('');
+  // Child ID must always start with capital 'C' followed by digits (e.g., C123)
+  const [childId, setChildId] = useState('C');
+  const [childIdInvalid, setChildIdInvalid] = useState(false);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // New state for enhanced functionality
+  const [viewMode, setViewMode] = useState('all'); // 'all', 'daily', 'weekly'
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [currentProgress, setCurrentProgress] = useState(null);
+  const [progressLoading, setProgressLoading] = useState(false);
+  
+  // Performance analytics state
+  const [performanceData, setPerformanceData] = useState(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [performancePeriod, setPerformancePeriod] = useState('week'); // 'week' or 'month'
+  const [activeTab, setActiveTab] = useState('current'); // 'current', 'weekly', 'monthly'
+  
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activityTypeFilter, setActivityTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date'); // 'date', 'title'
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc', 'desc'
+  
+  // View activity modal state
+  const [viewActivity, setViewActivity] = useState(null);
 
   useEffect(() => {
     // Require parent login to access Learning & Assessment page
@@ -20,14 +72,72 @@ export default function LearningActivities() {
     // optionally prefill childId if your parent profile stores a default child
   }, []);
 
+  // Function to handle child ID input - enforce starting 'C' and digits only after
+  const handleChildIdChange = (e) => {
+    let value = e.target.value.toUpperCase();
+    // Always ensure it starts with 'C'
+    if (!value.startsWith('C')) {
+      value = 'C' + value.replace(/[^0-9]/g, '');
+    }
+    // Remove any non-digits after the first char
+    value = 'C' + value.slice(1).replace(/[^0-9]/g, '');
+    setChildId(value);
+    setChildIdInvalid(false);
+  };
+
+  // Prevent deleting the leading 'C'
+  const handleChildIdKeyDown = (e) => {
+    if ((e.key === 'Backspace' || e.key === 'Delete')) {
+      const input = e.target;
+      const selectionStart = input.selectionStart;
+      const selectionEnd = input.selectionEnd;
+      // If cursor at position 1 (after C) and deleting backwards is fine;
+      // Block if trying to delete the first character or whole field
+      const fullSelection = selectionStart === 0 && selectionEnd > 0;
+      const deletingFirst = selectionStart === 0 && selectionEnd === 0;
+      const deletingRangeIncludingFirst = selectionStart === 0 && selectionEnd >= 1;
+      if (fullSelection || deletingFirst || deletingRangeIncludingFirst) {
+        e.preventDefault();
+        // Optionally clear digits if user presses delete/backspace at start
+        if (childId.length > 1) {
+          setChildId('C');
+        }
+      }
+    }
+  };
+
+  // Sanitize pasted content
+  const handleChildIdPaste = (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData.getData('text') || '').toUpperCase();
+    const digits = text.replace(/[^0-9]/g, '');
+    setChildId('C' + digits);
+  };
+
   const fetchActivities = async () => {
     setError('');
     setList([]);
     const id = childId.trim();
     if (!id) { setError('Please enter a Child ID'); return; }
+    
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:5000/learning-activities/by-child/${encodeURIComponent(id)}`);
+      let url = `http://localhost:5000/learning-activities/by-child/${encodeURIComponent(id)}`;
+      let params = {};
+      
+      if (viewMode === 'daily') {
+        params.view = 'daily';
+        params.startDate = selectedDate;
+      } else if (viewMode === 'weekly') {
+        const date = new Date(selectedDate);
+        const startOfWeek = new Date(date.setDate(date.getDate() - date.getDay()));
+        const endOfWeek = new Date(date.setDate(date.getDate() - date.getDay() + 6));
+        params.view = 'weekly';
+        params.startDate = startOfWeek.toISOString().slice(0, 10);
+        params.endDate = endOfWeek.toISOString().slice(0, 10);
+      }
+      
+      const res = await axios.get(url, { params });
       if (res.data?.success) {
         setList(res.data.data || []);
       } else {
@@ -39,54 +149,1091 @@ export default function LearningActivities() {
       setLoading(false);
     }
   };
+  
+  const fetchCurrentProgress = async () => {
+    const id = childId.trim();
+    if (!id) return;
+    
+    try {
+      setProgressLoading(true);
+      const res = await axios.get(`http://localhost:5000/learning-activities/progress/${encodeURIComponent(id)}`);
+      if (res.data?.success) {
+        setCurrentProgress(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch progress:', err);
+    } finally {
+      setProgressLoading(false);
+    }
+  };
+  
+  const fetchPerformanceAnalytics = async (period = 'week') => {
+    const id = childId.trim();
+    if (!id) return;
+    
+    try {
+      setPerformanceLoading(true);
+      const res = await axios.get(`http://localhost:5000/learning-activities/analytics/${encodeURIComponent(id)}`, {
+        params: { period }
+      });
+      if (res.data?.success) {
+        setPerformanceData(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch performance analytics:', err);
+    } finally {
+      setPerformanceLoading(false);
+    }
+  };
+  
+  const getWeekDateRange = (date) => {
+    const d = new Date(date);
+    const startOfWeek = new Date(d.setDate(d.getDate() - d.getDay()));
+    const endOfWeek = new Date(d.setDate(d.getDate() - d.getDay() + 6));
+    return {
+      start: startOfWeek.toLocaleDateString(),
+      end: endOfWeek.toLocaleDateString()
+    };
+  };
+  
+  // Generate chart data for performance trends
+  const generatePerformanceCharts = () => {
+    if (!performanceData || performanceData.length === 0) {
+      return { lineChartData: null, barChartData: null };
+    }
+    
+    const sortedData = [...performanceData].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const labels = sortedData.map(item => new Date(item.date).toLocaleDateString());
+    
+    const lineChartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Literacy',
+          data: sortedData.map(item => item.progressMetrics?.literacy || 0),
+          borderColor: '#28a745',
+          backgroundColor: 'rgba(40, 167, 69, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Mathematics',
+          data: sortedData.map(item => item.progressMetrics?.mathematics || 0),
+          borderColor: '#007bff',
+          backgroundColor: 'rgba(0, 123, 255, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Social Skills',
+          data: sortedData.map(item => item.progressMetrics?.socialSkills || 0),
+          borderColor: '#ffc107',
+          backgroundColor: 'rgba(255, 193, 7, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Motor Skills',
+          data: sortedData.map(item => item.progressMetrics?.motorSkills || 0),
+          borderColor: '#dc3545',
+          backgroundColor: 'rgba(220, 53, 69, 0.1)',
+          tension: 0.4,
+        },
+        {
+          label: 'Creativity',
+          data: sortedData.map(item => item.progressMetrics?.creativity || 0),
+          borderColor: '#6f42c1',
+          backgroundColor: 'rgba(111, 66, 193, 0.1)',
+          tension: 0.4,
+        },
+      ],
+    };
+    
+    // Calculate averages for bar chart
+    const averages = {
+      literacy: Math.round(sortedData.reduce((sum, item) => sum + (item.progressMetrics?.literacy || 0), 0) / sortedData.length),
+      mathematics: Math.round(sortedData.reduce((sum, item) => sum + (item.progressMetrics?.mathematics || 0), 0) / sortedData.length),
+      socialSkills: Math.round(sortedData.reduce((sum, item) => sum + (item.progressMetrics?.socialSkills || 0), 0) / sortedData.length),
+      motorSkills: Math.round(sortedData.reduce((sum, item) => sum + (item.progressMetrics?.motorSkills || 0), 0) / sortedData.length),
+      creativity: Math.round(sortedData.reduce((sum, item) => sum + (item.progressMetrics?.creativity || 0), 0) / sortedData.length),
+    };
+    
+    const barChartData = {
+      labels: ['Literacy', 'Mathematics', 'Social Skills', 'Motor Skills', 'Creativity'],
+      datasets: [
+        {
+          label: `Average Performance (${performancePeriod === 'week' ? 'Weekly' : 'Monthly'})`,
+          data: [averages.literacy, averages.mathematics, averages.socialSkills, averages.motorSkills, averages.creativity],
+          backgroundColor: [
+            'rgba(40, 167, 69, 0.8)',
+            'rgba(0, 123, 255, 0.8)',
+            'rgba(255, 193, 7, 0.8)',
+            'rgba(220, 53, 69, 0.8)',
+            'rgba(111, 66, 193, 0.8)',
+          ],
+          borderColor: [
+            '#28a745',
+            '#007bff',
+            '#ffc107',
+            '#dc3545',
+            '#6f42c1',
+          ],
+          borderWidth: 2,
+        },
+      ],
+    };
+    
+    return { lineChartData, barChartData };
+  };
+  
+  const { lineChartData, barChartData } = generatePerformanceCharts();
+  
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: `Performance Trend (${performancePeriod === 'week' ? 'Weekly' : 'Monthly'})`,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          }
+        }
+      },
+    },
+  };
+  
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: `Average Performance (${performancePeriod === 'week' ? 'Weekly' : 'Monthly'})`,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: function(value) {
+            return value + '%';
+          }
+        }
+      },
+    },
+  };
+  
+  // PDF Generation Functions
+  const generatePerformancePDF = async (reportType = 'weekly') => {
+    try {
+      if (!performanceData || performanceData.length === 0) {
+        alert('No performance data available to generate PDF report.');
+        return;
+      }
 
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Header Design
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(3);
+      doc.line(10, 10, pageWidth - 10, 10);
+
+      // Load and add logo image
+      try {
+        // Add logo image to PDF (30x30mm size)
+        doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+      } catch (logoError) {
+        console.warn('Could not load logo, using fallback text:', logoError);
+        // Fallback to text logo if image loading fails
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 15, 30, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('LITTLE', 30, 28, { align: 'center' });
+        doc.text('NEST', 30, 35, { align: 'center' });
+      }
+
+      // Company name + tagline
+      doc.setFontSize(24);
+      doc.setTextColor(30, 58, 138);
+      doc.text('LITTLE NEST DAYCARE', 55, 28);
+      doc.setFontSize(12);
+      doc.setTextColor(70, 130, 180);
+      doc.text('Quality Childcare & Early Learning Center', 55, 36);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('123 Childcare Lane, City, State 12345 | (555) 123-4567', 55, 42);
+      doc.text('info@littlenest.com | www.littlenest.com', 55, 46);
+
+      // Title panel
+      const reportTitle = reportType === 'weekly' ? 'WEEKLY PERFORMANCE REPORT' : 'MONTHLY PERFORMANCE REPORT';
+      doc.setFillColor(245, 250, 255);
+      doc.rect(10, 55, pageWidth - 20, 25, 'F');
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(2);
+      doc.rect(10, 55, pageWidth - 20, 25);
+      doc.setDrawColor(70, 130, 180);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 57, pageWidth - 24, 21);
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text(reportTitle, pageWidth / 2, 70, { align: 'center' });
+
+      // Metadata box
+      doc.setFillColor(250, 252, 255);
+      doc.rect(10, 85, pageWidth - 20, 18, 'F');
+      doc.setDrawColor(200, 220, 240);
+      doc.setLineWidth(0.5);
+      doc.rect(10, 85, pageWidth - 20, 18);
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const currentDate = new Date();
+      const period = reportType === 'weekly' ? 'Last 7 Days' : 'Last 30 Days';
+      doc.text(`Report Generated: ${currentDate.toLocaleDateString()} at ${currentDate.toLocaleTimeString()}`, 15, 92);
+      doc.text(`Child ID: ${childId || 'N/A'}`, 15, 97);
+      doc.text(`Period: ${period}`, pageWidth / 2 + 10, 92);
+      doc.text(`Total Records: ${performanceData.length}`, pageWidth / 2 + 10, 97);
+
+      // Performance Summary Section
+      let currentY = 110;
+      doc.setFontSize(16);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Performance Summary', 15, currentY);
+      currentY += 10;
+
+      // Calculate averages
+      const averages = {
+        literacy: Math.round(performanceData.reduce((sum, item) => sum + (item.progressMetrics?.literacy || 0), 0) / performanceData.length),
+        mathematics: Math.round(performanceData.reduce((sum, item) => sum + (item.progressMetrics?.mathematics || 0), 0) / performanceData.length),
+        socialSkills: Math.round(performanceData.reduce((sum, item) => sum + (item.progressMetrics?.socialSkills || 0), 0) / performanceData.length),
+        motorSkills: Math.round(performanceData.reduce((sum, item) => sum + (item.progressMetrics?.motorSkills || 0), 0) / performanceData.length),
+        creativity: Math.round(performanceData.reduce((sum, item) => sum + (item.progressMetrics?.creativity || 0), 0) / performanceData.length),
+      };
+
+      // Summary table
+      const summaryTableBody = [
+        ['Literacy', `${averages.literacy}%`, getPerformanceGrade(averages.literacy)],
+        ['Mathematics', `${averages.mathematics}%`, getPerformanceGrade(averages.mathematics)],
+        ['Social Skills', `${averages.socialSkills}%`, getPerformanceGrade(averages.socialSkills)],
+        ['Motor Skills', `${averages.motorSkills}%`, getPerformanceGrade(averages.motorSkills)],
+        ['Creativity', `${averages.creativity}%`, getPerformanceGrade(averages.creativity)]
+      ];
+
+      autoTable(doc, {
+        head: [['Skill Area', 'Average Score', 'Grade']],
+        body: summaryTableBody,
+        startY: currentY,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [30, 58, 138],
+          textColor: [255, 255, 255],
+          fontSize: 11,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        bodyStyles: {
+          fontSize: 10,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 60, halign: 'left' },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 40 }
+        }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 15;
+
+      // Detailed Progress Records
+      doc.setFontSize(16);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Detailed Progress Records', 15, currentY);
+      currentY += 10;
+
+      // Prepare detailed records table
+      const detailedTableBody = performanceData
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(record => [
+          new Date(record.date).toLocaleDateString(),
+          `${record.progressMetrics?.literacy || 0}%`,
+          `${record.progressMetrics?.mathematics || 0}%`,
+          `${record.progressMetrics?.socialSkills || 0}%`,
+          `${record.progressMetrics?.motorSkills || 0}%`,
+          `${record.progressMetrics?.creativity || 0}%`,
+          record.notes ? record.notes.substring(0, 30) + (record.notes.length > 30 ? '...' : '') : '-'
+        ]);
+
+      autoTable(doc, {
+        head: [['Date', 'Literacy', 'Math', 'Social', 'Motor', 'Creative', 'Notes']],
+        body: detailedTableBody,
+        startY: currentY,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [70, 130, 180],
+          textColor: [255, 255, 255],
+          fontSize: 9,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        bodyStyles: {
+          fontSize: 8,
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 25, halign: 'center' },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 20 },
+          5: { cellWidth: 20 },
+          6: { cellWidth: 65, halign: 'left' }
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 2
+        }
+      });
+
+      // Add new page if needed for insights
+      if (doc.lastAutoTable.finalY > pageHeight - 80) {
+        doc.addPage();
+        currentY = 20;
+      } else {
+        currentY = doc.lastAutoTable.finalY + 15;
+      }
+
+      // Performance Insights
+      doc.setFontSize(16);
+      doc.setTextColor(30, 58, 138);
+      doc.text('Performance Insights', 15, currentY);
+      currentY += 10;
+
+      const insights = generateInsights(averages, performanceData);
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      
+      insights.forEach((insight, index) => {
+        const splitText = doc.splitTextToSize(insight, pageWidth - 30);
+        doc.text(splitText, 15, currentY);
+        currentY += splitText.length * 5 + 3;
+      });
+
+      // Footer
+      const footerY = pageHeight - 25;
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(1);
+      doc.line(10, footerY, pageWidth - 10, footerY);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Little Nest Daycare - Confidential Performance Report', 15, footerY + 8);
+      doc.text('This document contains confidential child performance data. Handle with care.', 15, footerY + 12);
+      doc.text('Generated by: Learning Assessment System v1.0', pageWidth - 15, footerY + 8, { align: 'right' });
+
+      // Save the PDF
+      const fileName = `${childId || 'child'}_${reportType}_performance_report_${new Date().toISOString().slice(0, 10)}.pdf`;
+      doc.save(fileName);
+
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF report. Please try again.');
+    }
+  };
+
+  // Helper function to get performance grade
+  const getPerformanceGrade = (score) => {
+    if (score >= 90) return 'A+ Excellent';
+    if (score >= 80) return 'A Good';
+    if (score >= 70) return 'B+ Above Avg';
+    if (score >= 60) return 'B Average';
+    if (score >= 50) return 'C+ Below Avg';
+    return 'C Needs Help';
+  };
+
+  // Helper function to generate insights
+  const generateInsights = (averages, data) => {
+    const insights = [];
+    
+    // Find strongest and weakest skills
+    const skillScores = [
+      { name: 'Literacy', score: averages.literacy },
+      { name: 'Mathematics', score: averages.mathematics },
+      { name: 'Social Skills', score: averages.socialSkills },
+      { name: 'Motor Skills', score: averages.motorSkills },
+      { name: 'Creativity', score: averages.creativity }
+    ];
+    
+    const sortedSkills = skillScores.sort((a, b) => b.score - a.score);
+    const strongest = sortedSkills[0];
+    const weakest = sortedSkills[sortedSkills.length - 1];
+    
+    insights.push(`Strongest Skill: ${strongest.name} (${strongest.score}%) - Child shows excellent progress in this area.`);
+    insights.push(`Growth Opportunity: ${weakest.name} (${weakest.score}%) - Consider additional activities to support development.`);
+    
+    // Overall performance assessment
+    const overallAverage = Math.round(skillScores.reduce((sum, skill) => sum + skill.score, 0) / skillScores.length);
+    insights.push(`Overall Performance: ${overallAverage}% - ${getPerformanceGrade(overallAverage)}`);
+    
+    // Progress trend
+    if (data.length > 1) {
+      const recent = data.slice(0, Math.ceil(data.length / 2));
+      const earlier = data.slice(Math.ceil(data.length / 2));
+      
+      const recentAvg = recent.reduce((sum, record) => {
+        const recordAvg = (
+          (record.progressMetrics?.literacy || 0) +
+          (record.progressMetrics?.mathematics || 0) +
+          (record.progressMetrics?.socialSkills || 0) +
+          (record.progressMetrics?.motorSkills || 0) +
+          (record.progressMetrics?.creativity || 0)
+        ) / 5;
+        return sum + recordAvg;
+      }, 0) / recent.length;
+      
+      const earlierAvg = earlier.reduce((sum, record) => {
+        const recordAvg = (
+          (record.progressMetrics?.literacy || 0) +
+          (record.progressMetrics?.mathematics || 0) +
+          (record.progressMetrics?.socialSkills || 0) +
+          (record.progressMetrics?.motorSkills || 0) +
+          (record.progressMetrics?.creativity || 0)
+        ) / 5;
+        return sum + recordAvg;
+      }, 0) / earlier.length;
+      
+      const trend = recentAvg - earlierAvg;
+      if (trend > 5) {
+        insights.push(`Trend Analysis: Positive improvement trend (+${Math.round(trend)}%) - Child is making excellent progress!`);
+      } else if (trend < -5) {
+        insights.push(`Trend Analysis: Declining trend (${Math.round(trend)}%) - May need additional support and attention.`);
+      } else {
+        insights.push(`Trend Analysis: Stable performance - Child is maintaining consistent progress levels.`);
+      }
+    }
+    
+    // Recommendations
+    insights.push(`Recommendation: Continue encouraging ${strongest.name.toLowerCase()} while providing extra support for ${weakest.name.toLowerCase()} through targeted activities and positive reinforcement.`);
+    
+    return insights;
+  };
+  
+  // Filter and sort activities
+  const getFilteredAndSortedActivities = () => {
+    let filtered = [...list];
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(activity => 
+        (activity.title && activity.title.toLowerCase().includes(term)) ||
+        (activity.description && activity.description.toLowerCase().includes(term)) ||
+        (activity.notes && activity.notes.toLowerCase().includes(term)) ||
+        (activity.recordedBy && activity.recordedBy.toLowerCase().includes(term))
+      );
+    }
+    
+    // Apply activity type filter
+    if (activityTypeFilter !== 'all') {
+      filtered = filtered.filter(activity => activity.activityType === activityTypeFilter);
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let compareValue = 0;
+      
+      if (sortBy === 'date') {
+        const dateA = new Date(a.date || a.createdAt);
+        const dateB = new Date(b.date || b.createdAt);
+        compareValue = dateA - dateB;
+      } else if (sortBy === 'title') {
+        const titleA = (a.title || '').toLowerCase();
+        const titleB = (b.title || '').toLowerCase();
+        compareValue = titleA.localeCompare(titleB);
+      }
+      
+      return sortOrder === 'asc' ? compareValue : -compareValue;
+    });
+    
+    return filtered;
+  };
+  
+  const filteredActivities = getFilteredAndSortedActivities();
+  
+  // Toggle sort order when clicking same sort option
+  const handleSortChange = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('desc');
+    }
+  };
+  
   return (
     <div>
       <Nav />
-      <div className="dashboard" style={{ maxWidth: 1000, margin: '40px auto', padding: '0 16px' }}>
+      <div className="dashboard" style={{ maxWidth: 1200, margin: '40px auto', padding: '0 16px' }}>
         <h1 className="title">Learning & Assessment</h1>
         {!parentUser && (
           <div className="form-error" style={{ marginTop: 8 }}>Please login as a parent to view learning activities.</div>
         )}
+        
+        {/* Child ID Input */}
         <div className="card full-width" style={{ marginTop: 16 }}>
-          <h3>View Learning Activities</h3>
-          <div className="actions" style={{ gap: 8 }}>
-            <input
-              type="text"
-              placeholder="Enter Child ID"
-              value={childId}
-              onChange={(e) => setChildId(e.target.value)}
-              style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
-            />
-            <button className="btn" type="button" disabled={loading} onClick={fetchActivities}>
-              {loading ? 'Loading...' : 'Get Activities'}
-            </button>
+          <h3>Child Learning Analytics</h3>
+          <div className="search-section">
+            <div className="actions" style={{ gap: 8, marginBottom: 16 }}>
+              <input
+                type="text"
+                placeholder="C### (e.g., C123)"
+                value={childId}
+                onChange={handleChildIdChange}
+                onKeyDown={handleChildIdKeyDown}
+                onPaste={handleChildIdPaste}
+                maxLength={10}
+                title="Child ID: fixed 'C' followed by digits only"
+                style={{ 
+                  padding: '10px', 
+                  borderRadius: 8, 
+                  border: `1px solid ${childIdInvalid ? '#dc3545' : '#ddd'}`, 
+                  flex: 1, 
+                  minWidth: 220, 
+                  textTransform: 'uppercase' 
+                }}
+              />
+              <button 
+                className="btn" 
+                type="button" 
+                disabled={loading} 
+                onClick={() => {
+                  fetchActivities();
+                  fetchCurrentProgress();
+                  fetchPerformanceAnalytics(performancePeriod);
+                }}
+              >
+                {loading ? 'Loading...' : 'Load Data'}
+              </button>
+            </div>
+            
+            {/* Tab Navigation */}
+            <div className="tab-navigation" style={{ marginTop: 16, borderBottom: '2px solid #e9ecef' }}>
+              <button 
+                className={`tab-btn ${activeTab === 'current' ? 'active' : ''}`}
+                onClick={() => setActiveTab('current')}
+              >
+                Current Progress
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'weekly' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('weekly');
+                  setPerformancePeriod('week');
+                  fetchPerformanceAnalytics('week');
+                }}
+              >
+                Weekly Performance
+              </button>
+              <button 
+                className={`tab-btn ${activeTab === 'monthly' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('monthly');
+                  setPerformancePeriod('month');
+                  fetchPerformanceAnalytics('month');
+                }}
+              >
+                Monthly Performance
+              </button>
+            </div>
           </div>
+        </div>
+        
+        {/* Current Progress Tab */}
+        {activeTab === 'current' && (
+          <div className="card full-width" style={{ marginTop: 16 }}>
+            <h3>Current Progress Status</h3>
+            {/* Current Progress Display */}
+            {currentProgress && (
+              <div className="progress-display" style={{ 
+                marginTop: 16, 
+                padding: 16, 
+                background: '#f8f9fa', 
+                borderRadius: 8, 
+                border: '1px solid #dee2e6' 
+              }}>
+                <h4 style={{ marginBottom: 16, color: '#495057' }}>Current Progress Metrics</h4>
+                {progressLoading ? (
+                  <p>Loading progress...</p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                    <div className="metric">
+                      <label>Literacy: {currentProgress.progressMetrics?.literacy || 0}%</label>
+                      <div style={{ width: '100%', height: 8, background: '#dee2e6', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: `${currentProgress.progressMetrics?.literacy || 0}%`, 
+                          height: '100%', 
+                          background: '#28a745',
+                          transition: 'width 0.3s ease'
+                        }}></div>
+                      </div>
+                    </div>
+                    <div className="metric">
+                      <label>Mathematics: {currentProgress.progressMetrics?.mathematics || 0}%</label>
+                      <div style={{ width: '100%', height: 8, background: '#dee2e6', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: `${currentProgress.progressMetrics?.mathematics || 0}%`, 
+                          height: '100%', 
+                          background: '#007bff'
+                        }}></div>
+                      </div>
+                    </div>
+                    <div className="metric">
+                      <label>Social Skills: {currentProgress.progressMetrics?.socialSkills || 0}%</label>
+                      <div style={{ width: '100%', height: 8, background: '#dee2e6', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: `${currentProgress.progressMetrics?.socialSkills || 0}%`, 
+                          height: '100%', 
+                          background: '#ffc107'
+                        }}></div>
+                      </div>
+                    </div>
+                    <div className="metric">
+                      <label>Motor Skills: {currentProgress.progressMetrics?.motorSkills || 0}%</label>
+                      <div style={{ width: '100%', height: 8, background: '#dee2e6', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: `${currentProgress.progressMetrics?.motorSkills || 0}%`, 
+                          height: '100%', 
+                          background: '#dc3545'
+                        }}></div>
+                      </div>
+                    </div>
+                    <div className="metric">
+                      <label>Creativity: {currentProgress.progressMetrics?.creativity || 0}%</label>
+                      <div style={{ width: '100%', height: 8, background: '#dee2e6', borderRadius: 4, overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: `${currentProgress.progressMetrics?.creativity || 0}%`, 
+                          height: '100%', 
+                          background: '#6f42c1'
+                        }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {currentProgress.lastUpdated && (
+                  <p style={{ marginTop: 12, fontSize: 14, color: '#6c757d' }}>
+                    Last updated: {new Date(currentProgress.lastUpdated).toLocaleDateString()}
+                  </p>
+                )}
+                {currentProgress.notes && (
+                  <div style={{ marginTop: 12 }}>
+                    <strong>Latest Notes:</strong>
+                    <p style={{ fontSize: 14, color: '#6c757d', marginTop: 4 }}>{currentProgress.notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Weekly Performance Tab */}
+        {activeTab === 'weekly' && (
+          <div className="card full-width" style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3>Weekly Performance Analysis</h3>
+              {performanceData && performanceData.length > 0 && (
+                <button 
+                  className="btn" 
+                  onClick={() => generatePerformancePDF('weekly')}
+                  style={{ 
+                    background: '#28a745', 
+                    color: 'white',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  Download Weekly Report
+                </button>
+              )}
+            </div>
+            {performanceLoading ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <p>Loading weekly performance data...</p>
+              </div>
+            ) : (
+              <div>
+                {lineChartData && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginTop: 20 }}>
+                    <div className="chart-container" style={{ height: 400 }}>
+                      <Line data={lineChartData} options={chartOptions} />
+                    </div>
+                    <div className="chart-container" style={{ height: 400 }}>
+                      <Bar data={barChartData} options={barChartOptions} />
+                    </div>
+                  </div>
+                )}
+                {performanceData && performanceData.length > 0 && (
+                  <div style={{ marginTop: 20 }}>
+                    <h4>Weekly Summary</h4>
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                      gap: 16,
+                      marginTop: 16
+                    }}>
+                      {performanceData.map((record, index) => (
+                        <div key={index} style={{ 
+                          background: '#f8f9fa', 
+                          padding: 12, 
+                          borderRadius: 8, 
+                          border: '1px solid #e9ecef' 
+                        }}>
+                          <h5 style={{ margin: '0 0 8px 0', color: '#495057' }}>
+                            {new Date(record.date).toLocaleDateString()}
+                          </h5>
+                          <div style={{ fontSize: 12 }}>
+                            <div>📚 Literacy: {record.progressMetrics?.literacy || 0}%</div>
+                            <div>🔢 Math: {record.progressMetrics?.mathematics || 0}%</div>
+                            <div>🤝 Social: {record.progressMetrics?.socialSkills || 0}%</div>
+                            <div>🏃 Motor: {record.progressMetrics?.motorSkills || 0}%</div>
+                            <div>🎨 Creative: {record.progressMetrics?.creativity || 0}%</div>
+                          </div>
+                          {record.notes && (
+                            <p style={{ fontSize: 11, color: '#6c757d', marginTop: 8, marginBottom: 0 }}>
+                              "{record.notes}"
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(!performanceData || performanceData.length === 0) && (
+                  <div style={{ textAlign: 'center', padding: 40, color: '#6c757d' }}>
+                    <p>No weekly performance data available. Make sure to record daily progress updates.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Monthly Performance Tab */}
+        {activeTab === 'monthly' && (
+          <div className="card full-width" style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3>Monthly Performance Analysis</h3>
+              {performanceData && performanceData.length > 0 && (
+                <button 
+                  className="btn" 
+                  onClick={() => generatePerformancePDF('monthly')}
+                  style={{ 
+                    background: '#007bff', 
+                    color: 'white',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  Download Monthly Report
+                </button>
+              )}
+            </div>
+            {performanceLoading ? (
+              <div style={{ textAlign: 'center', padding: 40 }}>
+                <p>Loading monthly performance data...</p>
+              </div>
+            ) : (
+              <div>
+                {lineChartData && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginTop: 20 }}>
+                    <div className="chart-container" style={{ height: 400 }}>
+                      <Line data={lineChartData} options={chartOptions} />
+                    </div>
+                    <div className="chart-container" style={{ height: 400 }}>
+                      <Bar data={barChartData} options={barChartOptions} />
+                    </div>
+                  </div>
+                )}
+                {performanceData && performanceData.length > 0 && (
+                  <div style={{ marginTop: 20 }}>
+                    <h4>Monthly Summary</h4>
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+                      gap: 16,
+                      marginTop: 16
+                    }}>
+                      {performanceData.map((record, index) => (
+                        <div key={index} style={{ 
+                          background: '#f8f9fa', 
+                          padding: 16, 
+                          borderRadius: 8, 
+                          border: '1px solid #e9ecef' 
+                        }}>
+                          <h5 style={{ margin: '0 0 12px 0', color: '#495057' }}>
+                            {new Date(record.date).toLocaleDateString()}
+                          </h5>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12 }}>
+                            <div>📚 Literacy: {record.progressMetrics?.literacy || 0}%</div>
+                            <div>🔢 Mathematics: {record.progressMetrics?.mathematics || 0}%</div>
+                            <div>🤝 Social Skills: {record.progressMetrics?.socialSkills || 0}%</div>
+                            <div>🏃 Motor Skills: {record.progressMetrics?.motorSkills || 0}%</div>
+                            <div style={{ gridColumn: '1 / -1' }}>🎨 Creativity: {record.progressMetrics?.creativity || 0}%</div>
+                          </div>
+                          {record.notes && (
+                            <div style={{ marginTop: 12, padding: 8, background: 'white', borderRadius: 4 }}>
+                              <strong style={{ fontSize: 11, color: '#495057' }}>Notes:</strong>
+                              <p style={{ fontSize: 11, color: '#6c757d', marginTop: 4, marginBottom: 0 }}>
+                                {record.notes}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(!performanceData || performanceData.length === 0) && (
+                  <div style={{ textAlign: 'center', padding: 40, color: '#6c757d' }}>
+                    <p>No monthly performance data available. Make sure to record daily progress updates.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Activity Filters and Views */}
+        <div className="card full-width" style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+            <h3 style={{ margin: 0 }}>Learning Activities</h3>
+            
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* View Mode Selector */}
+              <select 
+                value={viewMode} 
+                onChange={(e) => setViewMode(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #ced4da' }}
+              >
+                <option value="all">All Activities</option>
+                <option value="daily">Daily View</option>
+                <option value="weekly">Weekly View</option>
+              </select>
+              
+              {/* Date Selector */}
+              {(viewMode === 'daily' || viewMode === 'weekly') && (
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  style={{ padding: '8px 12px', borderRadius: 4, border: '1px solid #ced4da' }}
+                />
+              )}
+              
+              <button className="btn" type="button" disabled={loading} onClick={fetchActivities}>
+                {loading ? 'Loading...' : 'Refresh'}
+              </button>
+            </div>
+          </div>
+          
+          {/* View Mode Info */}
+          {viewMode !== 'all' && (
+            <div style={{ marginBottom: 12, padding: 8, background: '#e3f2fd', borderRadius: 4, fontSize: 14 }}>
+              {viewMode === 'daily' && `Showing activities for: ${new Date(selectedDate).toLocaleDateString()}`}
+              {viewMode === 'weekly' && `Showing activities for week: ${getWeekDateRange(selectedDate).start} - ${getWeekDateRange(selectedDate).end}`}
+            </div>
+          )}
+          
+          {/* Modern Search and Filter Bar */}
+          <div className="filter-bar">
+            {/* Search Input */}
+            <div className="search-box">
+              <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search activities, notes, or teacher..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  className="clear-search"
+                  onClick={() => setSearchTerm('')}
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            
+            {/* Filter and Sort Controls */}
+            <div className="filter-controls">
+              <div className="filter-group">
+                <label htmlFor="activityTypeFilter">Type:</label>
+                <select
+                  id="activityTypeFilter"
+                  className="filter-select"
+                  value={activityTypeFilter}
+                  onChange={(e) => setActivityTypeFilter(e.target.value)}
+                >
+                  <option value="all">All Types</option>
+                  <option value="general">General Activity</option>
+                  <option value="progress_update">Progress Update</option>
+                </select>
+              </div>
+              
+              <div className="filter-group">
+                <label htmlFor="sortBy">Sort By:</label>
+                <select
+                  id="sortBy"
+                  className="filter-select"
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                >
+                  <option value="date">Date</option>
+                  <option value="title">Title</option>
+                </select>
+              </div>
+              
+              <button 
+                className="sort-order-btn"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                {sortOrder === 'asc' ? '↑' : '↓'}
+              </button>
+            </div>
+          </div>
+          
+          {/* Results Count */}
+          {list.length > 0 && (
+            <div className="results-info">
+              Showing <strong>{filteredActivities.length}</strong> of <strong>{list.length}</strong> activities
+              {searchTerm && ` matching "${searchTerm}"`}
+            </div>
+          )}
+          
           {error && <div className="form-error" style={{ marginTop: 10 }}>{error}</div>}
-          <div className="table-wrap" style={{ marginTop: 12 }}>
-            <table className="table">
+          
+          <div className="modern-table-wrap">
+            <table className="modern-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Title</th>
+                  <th className="sortable" onClick={() => handleSortChange('date')}>
+                    Date {sortBy === 'date' && <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                  </th>
+                  <th>Type</th>
+                  <th className="sortable" onClick={() => handleSortChange('title')}>
+                    Title {sortBy === 'title' && <span className="sort-indicator">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+                  </th>
                   <th>Description</th>
+                  <th>Progress Metrics</th>
+                  <th>Notes</th>
                   <th>Recorded By</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {list.length === 0 ? (
+                {filteredActivities.length === 0 ? (
                   <tr>
-                    <td colSpan="4" style={{ textAlign: 'center' }}>
-                      {loading ? 'Loading...' : 'No activities to show'}
+                    <td colSpan="8" className="empty-state">
+                      <div className="empty-state-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <p>{loading ? 'Loading activities...' : searchTerm || activityTypeFilter !== 'all' ? 'No activities match your filters' : 'No activities to show'}</p>
+                        {(searchTerm || activityTypeFilter !== 'all') && !loading && (
+                          <button 
+                            className="btn-secondary"
+                            onClick={() => {
+                              setSearchTerm('');
+                              setActivityTypeFilter('all');
+                            }}
+                          >
+                            Clear Filters
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  list.map((a) => (
-                    <tr key={a._id}>
-                      <td>{a.date || (a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '-')}</td>
-                      <td>{a.title || '-'}</td>
-                      <td>{a.description || '-'}</td>
-                      <td>{a.recordedBy || '-'}</td>
+                  filteredActivities.map((activity, index) => (
+                    <tr key={activity._id} className="table-row" style={{ animationDelay: `${index * 0.05}s` }}>
+                      <td className="date-cell">
+                        <span className="date-display">
+                          {activity.date || (activity.createdAt ? new Date(activity.createdAt).toLocaleDateString() : '-')}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`activity-badge ${activity.activityType === 'progress_update' ? 'badge-progress' : 'badge-activity'}`}>
+                          {activity.activityType === 'progress_update' ? 'Progress Update' : 'General Activity'}
+                        </span>
+                      </td>
+                      <td className="title-cell">{activity.title || '-'}</td>
+                      <td className="description-cell">{activity.description || '-'}</td>
+                      <td className="metrics-cell">
+                        {activity.progressMetrics ? (
+                          <div className="progress-metrics">
+                            <div className="metric-item">
+                              <span className="metric-label">Literacy:</span>
+                              <span className="metric-value">{activity.progressMetrics.literacy}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Math:</span>
+                              <span className="metric-value">{activity.progressMetrics.mathematics}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Social:</span>
+                              <span className="metric-value">{activity.progressMetrics.socialSkills}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Motor:</span>
+                              <span className="metric-value">{activity.progressMetrics.motorSkills}%</span>
+                            </div>
+                            <div className="metric-item">
+                              <span className="metric-label">Creative:</span>
+                              <span className="metric-value">{activity.progressMetrics.creativity}%</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="no-data">-</span>
+                        )}
+                      </td>
+                      <td className="notes-cell">{activity.notes || '-'}</td>
+                      <td className="teacher-cell">
+                        <span className="teacher-name">{activity.recordedBy || '-'}</span>
+                      </td>
+                      <td className="action-cell">
+                        <button
+                          className="btn-view"
+                          onClick={() => setViewActivity(activity)}
+                          title="View Details"
+                        >
+                          👁️ View
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -95,6 +1242,203 @@ export default function LearningActivities() {
           </div>
         </div>
       </div>
+      
+      {/* View Activity Modal */}
+      {viewActivity && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          padding: '20px',
+          overflowY: 'auto'
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '32px',
+            borderRadius: '16px',
+            width: '90%',
+            maxWidth: '700px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '24px' }}>
+              <h3 style={{ 
+                margin: 0, 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                WebkitBackgroundClip: 'text', 
+                WebkitTextFillColor: 'transparent',
+                fontSize: '24px',
+                fontWeight: 700
+              }}>
+                📋 Activity Details
+              </h3>
+              <button
+                onClick={() => setViewActivity(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '28px',
+                  cursor: 'pointer',
+                  color: '#999',
+                  lineHeight: '1',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#f1f3f5';
+                  e.currentTarget.style.color = '#000';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'none';
+                  e.currentTarget.style.color = '#999';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gap: '20px' }}>
+              {/* Activity Type Badge */}
+              <div>
+                <span className={`activity-badge ${viewActivity.activityType === 'progress_update' ? 'badge-progress' : 'badge-activity'}`} style={{ fontSize: '14px', padding: '6px 16px' }}>
+                  {viewActivity.activityType === 'progress_update' ? '📊 Progress Update' : '📝 General Activity'}
+                </span>
+              </div>
+              
+              {/* Basic Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Date</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#212529' }}>
+                    {viewActivity.date || (viewActivity.createdAt ? new Date(viewActivity.createdAt).toLocaleDateString() : '-')}
+                  </p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Recorded By</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#212529' }}>{viewActivity.recordedBy || '-'}</p>
+                </div>
+              </div>
+              
+              {/* Child Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Child ID</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#007bff' }}>{viewActivity.childId || '-'}</p>
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Child Name</label>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#212529' }}>{viewActivity.childName || '-'}</p>
+                </div>
+              </div>
+              
+              {/* Title */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Title</label>
+                <p style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#212529' }}>{viewActivity.title || '-'}</p>
+              </div>
+              
+              {/* Description */}
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Description</label>
+                <p style={{ margin: 0, fontSize: '14px', color: '#495057', lineHeight: 1.6 }}>{viewActivity.description || '-'}</p>
+              </div>
+              
+              {/* Progress Metrics */}
+              {viewActivity.progressMetrics && (
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '12px', display: 'block' }}>Progress Metrics</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #28a745' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Literacy</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#28a745' }}>{viewActivity.progressMetrics.literacy}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #007bff' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Mathematics</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#007bff' }}>{viewActivity.progressMetrics.mathematics}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #ffc107' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Social Skills</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#ffc107' }}>{viewActivity.progressMetrics.socialSkills}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #dc3545' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Motor Skills</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#dc3545' }}>{viewActivity.progressMetrics.motorSkills}%</div>
+                    </div>
+                    <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #6f42c1' }}>
+                      <div style={{ fontSize: '11px', color: '#6c757d', fontWeight: 600, marginBottom: '4px' }}>Creativity</div>
+                      <div style={{ fontSize: '20px', fontWeight: 700, color: '#6f42c1' }}>{viewActivity.progressMetrics.creativity}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Notes */}
+              {viewActivity.notes && (
+                <div>
+                  <label style={{ fontSize: '12px', fontWeight: 600, color: '#6c757d', marginBottom: '4px', display: 'block' }}>Notes</label>
+                  <p style={{ 
+                    margin: 0, 
+                    fontSize: '14px', 
+                    color: '#495057', 
+                    background: '#f8f9fa', 
+                    padding: '12px', 
+                    borderRadius: '8px',
+                    fontStyle: 'italic',
+                    lineHeight: 1.6
+                  }}>
+                    {viewActivity.notes}
+                  </p>
+                </div>
+              )}
+              
+              {/* Close Button */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+                <button
+                  onClick={() => setViewActivity(null)}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 32px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(102, 126, 234, 0.4)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,12 +17,20 @@ function SalaryDetails() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingSalary, setEditingSalary] = useState(null);
+  // Function to get current month in YYYY-MM format
+  const getCurrentMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
   const [formData, setFormData] = useState({
     empID: '',
     empName: '',
     email: '',
     basicSalary: '',
-    month: '',
+    month: getCurrentMonth(),
     allowances: '',
     loanDeductions: ''
   });
@@ -116,6 +124,13 @@ function SalaryDetails() {
     // Validation checks
     if (!validateEmployeeName(formData.empName)) {
       setError('Employee name can only contain letters and spaces');
+      return;
+    }
+    
+    // Check if month is current month
+    const currentMonth = getCurrentMonth();
+    if (formData.month !== currentMonth) {
+      setError(`You can only add salary for the current month (${currentMonth})`);
       return;
     }
     
@@ -248,13 +263,16 @@ function SalaryDetails() {
     });
   };
 
-  // Filter salaries based on search term
-  const filteredSalaries = salaries.filter(salary =>
-    salary.empID?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salary.empName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salary.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salary.month?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter salaries based on search term (matches beginning of words in name and ID only)
+  const filteredSalaries = searchTerm ? salaries.filter(salary => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Check if employee name or ID starts with the search term
+    return (
+      (salary.empName && salary.empName.toLowerCase().startsWith(searchLower)) ||
+      (salary.empID && salary.empID.toLowerCase().startsWith(searchLower))
+    );
+  }) : salaries;
 
   // Download PDF function
   const downloadPDF = () => {
@@ -565,14 +583,17 @@ function SalaryDetails() {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="month">Month</label>
+                  <label htmlFor="month">Month <span className="current-month">(Current: {getCurrentMonth()})</span></label>
                   <input
                     type="month"
                     id="month"
                     name="month"
                     value={formData.month}
                     onChange={handleInputChange}
+                    min={getCurrentMonth()}
+                    max={getCurrentMonth()}
                     required
+                    className="month-input"
                   />
                 </div>
               </div>

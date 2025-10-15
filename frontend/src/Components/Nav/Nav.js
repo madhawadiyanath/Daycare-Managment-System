@@ -41,6 +41,9 @@ function Nav() {
                         <li class="dropdown-item">
                             <Link to="/mainfina" class="dropdown-link" >Billing & Finance</Link>
                         </li>
+                        <li class="dropdown-item">
+                            <Link to="/inventory/dashboard" class="dropdown-link" >Inventory</Link>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">

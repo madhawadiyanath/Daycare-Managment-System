@@ -1,13 +1,38 @@
 const LearningActivity = require('../models/LearningActivity');
 
+const normalizeActivityType = (value) => {
+  const cleaned = String(value || 'general').trim().toLowerCase().replace(/\s+/g, '_');
+  if (cleaned === 'progress_update') return 'progress_update';
+  if (cleaned === 'assessment') return 'assessment';
+  return 'general';
+};
+
 // POST /learning-activities
 async function createLearningActivity(req, res) {
   try {
-    const { childId, childName, title, date, description, recordedBy } = req.body;
+    const {
+      childId,
+      childName,
+      title,
+      date,
+      description,
+      recordedBy,
+      activityType,
+      notes,
+      progressMetrics
+    } = req.body;
 
     if (!childId || !childName) {
       return res.status(400).json({ success: false, message: 'childId and childName are required' });
     }
+
+  const normalisedType = normalizeActivityType(activityType);
+
+    const clampMetric = (value) => {
+      const numeric = parseInt(value, 10);
+      if (Number.isNaN(numeric)) return 0;
+      return Math.min(100, Math.max(0, numeric));
+    };
 
     const payload = {
       childId: String(childId).trim(),
@@ -16,7 +41,19 @@ async function createLearningActivity(req, res) {
       date: date || new Date().toISOString().slice(0, 10),
       description: description ? String(description).trim() : undefined,
       recordedBy: recordedBy ? String(recordedBy).trim() : undefined,
+      activityType: normalisedType,
+      notes: notes ? String(notes).trim() : undefined,
     };
+
+    if (payload.activityType === 'progress_update' && progressMetrics && typeof progressMetrics === 'object') {
+      payload.progressMetrics = {
+        literacy: clampMetric(progressMetrics.literacy),
+        mathematics: clampMetric(progressMetrics.mathematics),
+        socialSkills: clampMetric(progressMetrics.socialSkills),
+        motorSkills: clampMetric(progressMetrics.motorSkills),
+        creativity: clampMetric(progressMetrics.creativity),
+      };
+    }
 
     const created = await LearningActivity.create(payload);
     return res.status(201).json({ success: true, data: created });
@@ -50,8 +87,119 @@ async function getLearningActivityById(req, res) {
   }
 }
 
+// PUT /learning-activities/:id
+async function updateLearningActivity(req, res) {
+  try {
+    const { id } = req.params;
+  const { title, description, notes, progressMetrics, activityType } = req.body;
+
+    // Find the existing activity
+    const existingActivity = await LearningActivity.findById(id);
+    if (!existingActivity) {
+      return res.status(404).json({ success: false, message: 'Learning activity not found' });
+    }
+
+    const clampMetric = (value) => {
+      const numeric = parseInt(value, 10);
+      if (Number.isNaN(numeric)) return 0;
+      return Math.min(100, Math.max(0, numeric));
+    };
+
+  const normalisedExistingType = normalizeActivityType(existingActivity.activityType);
+  const requestedType = activityType ? normalizeActivityType(activityType) : null;
+
+    // Prepare update payload
+    const updatePayload = {};
+    if (title !== undefined) updatePayload.title = String(title).trim();
+    if (description !== undefined) updatePayload.description = String(description).trim();
+    if (notes !== undefined) updatePayload.notes = String(notes).trim();
+    if (requestedType) {
+      updatePayload.activityType = requestedType;
+    }
+    
+    // Handle progress metrics update (only for progress_update type activities)
+    const shouldUpdateProgress = progressMetrics !== undefined
+      && typeof progressMetrics === 'object'
+      && ((requestedType ? requestedType === 'progress_update' : false) || normalisedExistingType === 'progress_update');
+
+    if (shouldUpdateProgress) {
+      updatePayload.progressMetrics = {
+        literacy: clampMetric(progressMetrics.literacy),
+        mathematics: clampMetric(progressMetrics.mathematics),
+        socialSkills: clampMetric(progressMetrics.socialSkills),
+        motorSkills: clampMetric(progressMetrics.motorSkills),
+        creativity: clampMetric(progressMetrics.creativity)
+      };
+    }
+    
+    // Add update timestamp
+    updatePayload.updatedAt = new Date();
+
+    // Update the activity
+    const updatedActivity = await LearningActivity.findByIdAndUpdate(
+      id,
+      updatePayload,
+      { new: true, runValidators: true }
+    );
+
+    return res.json({ 
+      success: true, 
+      data: updatedActivity,
+      message: 'Learning activity updated successfully'
+    });
+  } catch (err) {
+    console.error('Update learning activity error:', err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Validation error: ' + err.message 
+      });
+    }
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error updating learning activity' 
+    });
+  }
+}
+
+// DELETE /learning-activities/:id
+async function deleteLearningActivity(req, res) {
+  try {
+    const { id } = req.params;
+
+    // Find the existing activity
+    const existingActivity = await LearningActivity.findById(id);
+    if (!existingActivity) {
+      return res.status(404).json({ success: false, message: 'Learning activity not found' });
+    }
+
+    // Delete the activity
+    await LearningActivity.findByIdAndDelete(id);
+
+    return res.json({ 
+      success: true, 
+      message: 'Learning activity deleted successfully',
+      data: { id: existingActivity._id, childId: existingActivity.childId }
+    });
+  } catch (err) {
+    console.error('Delete learning activity error:', err);
+    if (err.name === 'CastError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid activity ID format' 
+      });
+    }
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server error deleting learning activity' 
+    });
+  }
+}
+
 module.exports = {
   createLearningActivity,
   listLearningActivitiesByChild,
   getLearningActivityById,
+  updateLearningActivity,
+  deleteLearningActivity,
 };

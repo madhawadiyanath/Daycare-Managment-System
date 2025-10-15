@@ -17,6 +17,10 @@ const childRoutes = require("./routes/childRoute");
 const calendarRoutes = require("./routes/calendarEventRoute");
 const learningActivityRoutes = require("./routes/learningActivityRoute");
 
+const supplierDropdownRoute = require('./routes/supplierDropdownRoute');
+
+const supplierRoute = require('./routes/supplierRoute');
+const issueSummaryRoute = require('./routes/issueSummaryRoute');
 const { createDefaultAdmin } = require("./models/AdminModel");
 
 const app = express();
@@ -41,6 +45,9 @@ app.use("/child-requests", childRequestRoutes);
 app.use("/children", childRoutes);
 app.use("/calendar", calendarRoutes);
 app.use("/learning-activities", learningActivityRoutes);
+app.use('/admin/supplier-dropdown', supplierDropdownRoute);
+app.use('/admin/suppliers', supplierRoute);
+app.use('/admin/issue-summary', issueSummaryRoute);
 
 app.get("/", (req, res) => {
   res.send("Finance Management System is working");
