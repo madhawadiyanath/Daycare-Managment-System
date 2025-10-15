@@ -161,6 +161,151 @@ export default function ViewChildren() {
     }
   };
 
+  const handleDownloadAllPdf = async () => {
+    try {
+      if (!children || children.length === 0) return;
+      const doc = new jsPDF('l', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+
+      // Decorative top line
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(3);
+      doc.line(10, 10, pageWidth - 10, 10);
+
+      // Logo (match finance expenses style)
+      try {
+        doc.addImage(logoImage.default || logoImage, 'JPEG', 15, 15, 30, 30);
+      } catch (logoError) {
+        doc.setFillColor(30, 58, 138);
+        doc.rect(15, 15, 30, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('LITTLE', 30, 28, { align: 'center' });
+        doc.text('NEST', 30, 35, { align: 'center' });
+      }
+
+      // Company info
+      doc.setFontSize(24);
+      doc.setTextColor(30, 58, 138);
+      doc.text('LITTLE NEST DAYCARE', 55, 28);
+      doc.setFontSize(12);
+      doc.setTextColor(70, 130, 180);
+      doc.text('Quality Childcare & Early Learning Center', 55, 36);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('📍 123 Childcare Lane, City, State 12345 | 📞 (555) 123-4567', 55, 42);
+      doc.text('✉️ info@littlenest.com | 🌐 www.littlenest.com', 55, 46);
+
+      // Title panel
+      doc.setFillColor(245, 250, 255);
+      doc.rect(10, 55, pageWidth - 20, 25, 'F');
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(2);
+      doc.rect(10, 55, pageWidth - 20, 25);
+      doc.setDrawColor(70, 130, 180);
+      doc.setLineWidth(0.5);
+      doc.rect(12, 57, pageWidth - 24, 21);
+      doc.setFontSize(20);
+      doc.setTextColor(30, 58, 138);
+      doc.text('CHILDREN FULL DETAILS REPORT', pageWidth / 2, 70, { align: 'center' });
+
+      // Metadata box
+      doc.setFillColor(250, 252, 255);
+      doc.rect(10, 85, pageWidth - 20, 18, 'F');
+      doc.setDrawColor(200, 220, 240);
+      doc.setLineWidth(0.5);
+      doc.rect(10, 85, pageWidth - 20, 18);
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const genDate = new Date();
+      doc.text(`Report Generated: ${genDate.toLocaleDateString()} at ${genDate.toLocaleTimeString()}`, 15, 92);
+      doc.text(`Total Records: ${children.length}`, 15, 97);
+      doc.text('Report Scope: All Available Children Records', pageWidth / 2 + 10, 92);
+      doc.text('Status: Complete', pageWidth / 2 + 10, 97);
+
+      // One big table: core fields + compact multi-line details column
+      const head = [[
+        'Child ID', 'Name', 'Age', 'Gender', 'Parent', 'Check-in', 'Check-out', 'Created', 'Details'
+      ]];
+
+      const rows = children.map((c) => {
+        const approvedBy = c.approvedBy ? (c.approvedBy.name || c.approvedBy.username || c.approvedBy._id) : '-';
+        const details = [
+          `Health Notes: ${c.healthNotes || '-'}`,
+          `Meals: ${c.meals || '-'}`,
+          `Nap Times: ${c.napTimes || '-'}`,
+          `Health Status: ${c.healthStatus || '-'}`,
+          `Incidents: ${c.incidents || '-'}`,
+          `Medication: ${c.medication || '-'}`,
+          `Mood & Behavior: ${c.moodBehavior || '-'}`,
+          `Interactions: ${c.interactions || '-'}`,
+          `Approved By: ${approvedBy}`
+        ].join('\n');
+        return [
+          c.childId || '-',
+          c.name || '-',
+          c.age != null ? String(c.age) : '-',
+          c.gender || '-',
+          c.parent || '-',
+          c.checkInTime || '-',
+          c.checkOutTime || '-',
+          c.createdAt ? new Date(c.createdAt).toLocaleString() : '-',
+          details
+        ];
+      });
+
+      autoTable(doc, {
+        head,
+        body: rows,
+        startY: 110,
+        theme: 'grid',
+        alternateRowStyles: { fillColor: [248, 251, 255] },
+        headStyles: {
+          fillColor: [30, 58, 138],
+          textColor: [255, 255, 255],
+          fontSize: 11,
+          fontStyle: 'bold',
+          halign: 'center',
+          cellPadding: { top: 5, right: 3, bottom: 5, left: 3 }
+        },
+        bodyStyles: {
+          fontSize: 8,
+          cellPadding: { top: 3, right: 2, bottom: 3, left: 2 },
+          lineColor: [180, 200, 220],
+          lineWidth: 0.3
+        },
+        styles: { lineColor: [70, 130, 180], lineWidth: 0.5 },
+        columnStyles: {
+          0: { cellWidth: 22 },   // Child ID
+          1: { cellWidth: 30 },   // Name
+          2: { cellWidth: 12 },   // Age
+          3: { cellWidth: 16 },   // Gender
+          4: { cellWidth: 28 },   // Parent
+          5: { cellWidth: 20 },   // Check-in
+          6: { cellWidth: 20 },   // Check-out
+          7: { cellWidth: 32 },   // Created
+          8: { cellWidth: 90 },   // Details (wraps)
+        }
+      });
+
+      // Footer line and text
+      const footerY = pageHeight - 10;
+      doc.setDrawColor(30, 58, 138);
+      doc.setLineWidth(1);
+      doc.line(10, footerY, pageWidth - 10, footerY);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Little Nest Daycare - Confidential Child Document', 15, footerY + 6);
+      doc.text('Generated by: Daycare Management System v1.0', pageWidth - 15, footerY + 6, { align: 'right' });
+
+      doc.save('Little-Nest-Children-Full-Details.pdf');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to generate All Children PDF');
+    }
+  };
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const parent = user?.name || user?.username;
@@ -230,6 +375,14 @@ export default function ViewChildren() {
             <option value="age">Sort by Age</option>
             <option value="created">Sort by Created</option>
           </select>
+          <button
+            className="submit-btn"
+            type="button"
+            onClick={handleDownloadAllPdf}
+            disabled={!children || children.length === 0}
+          >
+            Download All
+          </button>
         </div>
 
         {/* Card grid */}
