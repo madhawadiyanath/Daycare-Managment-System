@@ -367,8 +367,10 @@ function StaffDashboard() {
                               disabled={actioningId === req._id}
                               onClick={async () => {
                                 if (!staff?._id) { alert('Missing staff ID. Please re-login.'); return; }
-                                const childId = window.prompt('Enter Child ID to assign (must be unique):');
-                                if (!childId || !childId.trim()) { return; }
+                                let childId = window.prompt('Enter Child ID to assign (digits only, must be unique):');
+                                if (childId === null) { return; }
+                                childId = String(childId).replace(/\D/g, '').trim();
+                                if (!childId) { alert('Child ID must contain digits only.'); return; }
                                 setActioningId(req._id);
                                 try {
                                   const res = await axios.post(`http://localhost:5000/child-requests/${req._id}/approve`, { staffId: staff._id, childId: childId.trim() });
@@ -515,7 +517,13 @@ function StaffDashboard() {
                 <input
                   type="text"
                   value={eventForm.childId}
-                  onChange={(e) => setEventForm({ ...eventForm, childId: e.target.value })}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setEventForm({ ...eventForm, childId: digits.slice(0, 5) });
+                  }}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={5}
                   placeholder="Link to a child"
                 />
               </div>
@@ -583,6 +591,8 @@ function StaffDashboard() {
                                 type="date"
                                 value={evEditForm.date}
                                 onChange={(e) => setEvEditForm({ ...evEditForm, date: e.target.value })}
+                                min={todayStr}
+                                max={maxStr}
                               />
                             </td>
                             <td>
@@ -598,7 +608,13 @@ function StaffDashboard() {
                                 className="table-input"
                                 type="text"
                                 value={evEditForm.childId || ''}
-                                onChange={(e) => setEvEditForm({ ...evEditForm, childId: e.target.value })}
+                                onChange={(e) => {
+                                  const digits = e.target.value.replace(/\D/g, '');
+                                  setEvEditForm({ ...evEditForm, childId: digits.slice(0, 5) });
+                                }}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={5}
                               />
                             </td>
                             <td className="actions-cell">
@@ -608,6 +624,14 @@ function StaffDashboard() {
                                   type="button"
                                   onClick={async () => {
                                     try {
+                                      // Validate date is within [todayStr, maxStr]
+                                      const sel = new Date(evEditForm.date);
+                                      const min = new Date(todayStr);
+                                      const max = new Date(maxStr);
+                                      if (isNaN(sel.getTime()) || sel < min || sel > max) {
+                                        alert(`Date must be between ${todayStr} and ${maxStr}`);
+                                        return;
+                                      }
                                       await axios.put(`http://localhost:5000/calendar/events/${ev._id}`, {
                                         title: evEditForm.title,
                                         date: evEditForm.date,
@@ -693,7 +717,13 @@ function StaffDashboard() {
               type="text"
               placeholder="Enter Child ID"
               value={childIdInput}
-              onChange={(e) => setChildIdInput(e.target.value)}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '');
+                setChildIdInput(digits.slice(0, 5));
+              }}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={5}
               style={{ padding: '10px', borderRadius: 8, border: '1px solid #ddd', flex: 1, minWidth: 220 }}
             />
             <button className="btn" type="button" disabled={childLoading} onClick={lookupChild}>
