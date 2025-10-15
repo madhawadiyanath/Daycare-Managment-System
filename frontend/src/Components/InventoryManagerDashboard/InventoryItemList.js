@@ -204,11 +204,11 @@ function InventoryItemList({ open, onClose, items, onEdit, onDelete }) {
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>{formatDate(item.modifiedOn)}</td>
                   <td style={{ borderBottom: '1px solid #eee', padding: 8 }}>
                     <button
-                      style={{ background: '#7f7fff', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 16px', marginRight: 8, cursor: 'pointer' }}
+                      style={{ background: '#f8d821ff', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 16px', marginRight: 8, cursor: 'pointer' }}
                       onClick={() => onEdit && onEdit(item)}
                     >Edit</button>
                     <button
-                      style={{ background: '#ff7f7f', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 16px', cursor: 'pointer' }}
+                      style={{ background: '#fc2d2dff', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 16px', cursor: 'pointer' }}
                       onClick={() => onDelete && onDelete(item)}
                     >Delete</button>
                   </td>
