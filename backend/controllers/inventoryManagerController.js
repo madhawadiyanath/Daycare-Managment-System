@@ -3,39 +3,47 @@ const IssueItem = require('../models/issueItem');
 const nodemailer = require('nodemailer');
 // Email notification for low stock
 const sendLowStockEmail = async (lowStockItems) => {
-  // Get all inventory managers' emails
-  console.log("Sending low stock email to inventory managers...");
-  const managers = await InventoryManager.find().select('email');
-  const emails = managers.map(m => m.email).filter(Boolean);
-  console.log("Manager emails:", emails);
-  if (emails.length === 0 || !lowStockItems || lowStockItems.length === 0) return;
+  try {
+    console.log("Sending low stock email to inventory managers...");
+    const managers = await InventoryManager.find().select('email');
+    const emails = managers.map(m => m.email).filter(Boolean);
+    console.log("Manager emails:", emails);
+    if (emails.length === 0 || !lowStockItems || lowStockItems.length === 0) {
+      console.log("No emails or low stock items to notify.");
+      return;
+    }
 
-  // Configure nodemailer (use your SMTP credentials)
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "inventorymanagementsystemday@gmail.com",
-      pass: "kaxrsujnmqkxahly",
-    },
-  });
-  
-  // Build email content
-  const itemList = lowStockItems.map(item =>
-    `<li><b>${item.name}</b> (${item.category}) - Stock: ${item.stock}</li>`
-  ).join('');
-  const html = `
-    <h3>Low Stock Alert</h3>
-    <p>The following inventory items are low in stock (5 units or less):</p>
-    <ul>${itemList}</ul>
-    <p>Please restock as soon as possible.</p>
-  `;
+    // Configure nodemailer (use your SMTP credentials)
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "inventorymanagementsystemday@gmail.com",
+        pass: "kaxrsujnmqkxahly",
+      },
+    });
+    
+    // Build email content
+    const itemList = lowStockItems.map(item =>
+      `<li><b>${item.name}</b> (${item.category}) - Stock: ${item.stock}</li>`
+    ).join('');
+    const html = `
+      <h3>Low Stock Alert</h3>
+      <p>The following inventory items are low in stock (5 units or less):</p>
+      <ul>${itemList}</ul>
+      <p>Please restock as soon as possible.</p>
+    `;
 
-  await transporter.sendMail({
-    from: 'inventorymanagementsystemday@gmail.com',
-    to: emails.join(','),
-    subject: 'Low Stock Alert - Inventory Management',
-    html,
-  });
+    await transporter.sendMail({
+      from: 'inventorymanagementsystemday@gmail.com',
+      to: [...new Set([...(Array.isArray(emails) ? emails : [emails]).filter(Boolean), 'Hansalakaubayasena@gmail.com'])].join(','),
+      subject: 'Low Stock Alert - Inventory Management',
+      html,
+    });
+
+    console.log("Low stock email sent successfully.");
+  } catch (error) {
+    console.error("Failed to send low stock email:", error);
+  }
 };
 const issueInventoryItem = async (req, res) => {
   try {
