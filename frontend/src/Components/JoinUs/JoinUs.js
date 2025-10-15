@@ -17,6 +17,12 @@ function JoinUs() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Prevent numbers in name field
+    if (name === 'name' && /\d/.test(value)) {
+      return; // Don't update if numbers are entered
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -48,12 +54,16 @@ function JoinUs() {
       newErrors.name = 'Name is required';
     } else if (formData.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
+    } else if (/\d/.test(formData.name.trim())) {
+      newErrors.name = 'Name cannot contain numbers';
+    } else if (!/^[a-zA-Z\s\-'.]+$/.test(formData.name.trim())) {
+      newErrors.name = 'Name can only contain letters, spaces, hyphens, and apostrophes';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address (e.g., user@example.com)';
     }
 
     if (!formData.password) {
@@ -148,7 +158,9 @@ function JoinUs() {
               value={formData.name}
               onChange={handleChange}
               className={errors.name ? 'error' : ''}
-              placeholder="Enter your full name"
+              placeholder="Enter your full name (letters only)"
+              pattern="[A-Za-z\s\-'.]+"
+              title="Please enter a valid name (letters, spaces, hyphens, and apostrophes only)"
               disabled={loading}
             />
             {errors.name && <span className="error-text">{errors.name}</span>}
